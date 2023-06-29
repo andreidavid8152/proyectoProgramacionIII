@@ -7,6 +7,18 @@ public class CategoriaGasto extends Categoria {
     }
 
     @Override
+    public boolean agregarTransaccion(Transaccion transaccion) {
+        double totalGasto = transaccion.getMonto();
+        System.out.println(totalGasto);
+        System.out.println(presupuesto);
+        if (totalGasto > this.presupuesto) {
+            return false;
+        }
+        this.transacciones.add(transaccion);
+        return true;
+    }
+
+    @Override
     public int editarTransaccion(int id, double monto, String descripcion) {
         Transaccion transaccion = buscarTransaccion(id);
         if (transaccion != null) {
@@ -35,24 +47,11 @@ public class CategoriaGasto extends Categoria {
         return false;  // No se encontró la transacción
     }
 
-
-    @Override
-    public boolean agregarTransaccion(Transaccion transaccion) {
-        double totalGasto = transaccion.getMonto();
-        System.out.println(totalGasto);
-        System.out.println(presupuesto);
-        if (totalGasto > this.presupuesto) {
-            return false;
-        }
-        this.transacciones.add(transaccion);
-        return true;
+    public double getPresupuesto() {
+        return presupuesto;
     }
 
     public void setPresupuesto(double presupuesto) {
         this.presupuesto = presupuesto;
-    }
-
-    public double getPresupuesto() {
-        return presupuesto;
     }
 }

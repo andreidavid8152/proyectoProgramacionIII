@@ -40,15 +40,6 @@ public class GestionFinanciera {
         return 1;
     }
 
-
-    public boolean validarCategoria(String categoria) {
-        if (this.categoriasIngreso.containsKey(categoria) || this.categoriasGasto.containsKey(categoria)) {
-            System.out.println("La categoría ya existe.");
-            return false;
-        }
-        return true;
-    }
-
     public boolean crearCategoriaIngreso(String categoria) {
         if (!validarCategoria(categoria)) {
             return false;
@@ -62,6 +53,107 @@ public class GestionFinanciera {
             return false;
         }
         this.categoriasGasto.put(categoria, new CategoriaGasto(categoria, presupuesto));
+        return true;
+    }
+
+    public boolean editarNombreCategoria(String viejoNombre, String nuevoNombre) {
+        // Verificar si el nuevo nombre ya existe en el sistema
+        if (validarCategoria(nuevoNombre)) {
+            if (this.categoriasIngreso.containsKey(viejoNombre)) {
+                CategoriaIngreso cat = this.categoriasIngreso.get(viejoNombre);
+                this.categoriasIngreso.remove(viejoNombre);
+                this.categoriasIngreso.put(nuevoNombre, cat);
+                for (Transaccion transaccion : cat.getTransacciones()) {
+                    transaccion.setCategoria(nuevoNombre);
+                }
+                return true;
+            } else if (this.categoriasGasto.containsKey(viejoNombre)) {
+                CategoriaGasto cat = this.categoriasGasto.get(viejoNombre);
+                this.categoriasGasto.remove(viejoNombre);
+                this.categoriasGasto.put(nuevoNombre, cat);
+                for (Transaccion transaccion : cat.getTransacciones()) {
+                    transaccion.setCategoria(nuevoNombre);
+                }
+                return true;
+            } else {
+                System.out.println("La categoría '" + viejoNombre + "' no existe.");
+                return false;
+            }
+        } else {
+            System.out.println("El nuevo nombre de categoría '" + nuevoNombre + "' ya existe en el sistema.");
+            return false;
+        }
+    }
+
+    public int eliminarCategoria(String categoria) {
+        if (this.categoriasIngreso.containsKey(categoria)) {
+            CategoriaIngreso cit = this.categoriasIngreso.get(categoria);
+            if (!cit.getTransacciones().isEmpty()) {
+                System.out.println("La categoría de gasto '" + categoria + "' tiene transacciones asignadas. No se puede eliminar.");
+                return 1;
+            } else {
+                this.categoriasIngreso.remove(categoria);
+                System.out.println("Categoría de gasto '" + categoria + "' eliminada con éxito.");
+                return 0;
+            }
+        } else if (this.categoriasGasto.containsKey(categoria)) {
+            CategoriaGasto cat = this.categoriasGasto.get(categoria);
+            // Verificar si hay presupuesto asignado y transacciones
+            if (!cat.getTransacciones().isEmpty()) {
+                System.out.println("La categoría de gasto '" + categoria + "' tiene transacciones asignadas. No se puede eliminar.");
+                return 1;
+            } else {
+                this.presupuestoTotal += cat.getPresupuesto();
+                this.categoriasGasto.remove(categoria);
+                System.out.println("Categoría de gasto '" + categoria + "' eliminada con éxito.");
+                return 0;
+            }
+        } else {
+            System.out.println("La categoría '" + categoria + "' no existe.");
+            return -1;
+        }
+    }
+
+    public boolean asignarPresupuestoACategoriaGasto(String nombreCategoria, double monto) {
+        CategoriaGasto cat = this.categoriasGasto.get(nombreCategoria);
+
+        // Verifica si la categoría existe
+        if (cat == null) {
+            System.out.println("La categoría proporcionada no existe.");
+            return false;
+        }
+
+        // Verifica si el monto excede al presupuesto total
+        if (monto > presupuestoTotal) {
+            System.out.println("El monto excede el presupuesto total.");
+            return false;
+        }
+
+        double presupuestoActual = cat.getPresupuesto();
+        double totalAsignado = this.categoriasGasto.values().stream()
+                .mapToDouble(CategoriaGasto::getPresupuesto)
+                .sum();
+
+        // Verifica si el monto, más lo ya asignado (excluyendo el presupuesto actual de la categoría), excede al presupuesto total
+        if ((totalAsignado - presupuestoActual + monto) > presupuestoTotal) {
+            System.out.println("El monto excede el presupuesto total disponible.");
+            return false;
+        }
+
+        // Asigna el nuevo presupuesto a la categoría de gasto
+        cat.setPresupuesto(monto);
+
+        // Restamos la diferencia entre el monto nuevo y el presupuesto actual del presupuesto total
+        presupuestoTotal -= (monto - presupuestoActual);
+
+        return true;
+    }
+
+    public boolean validarCategoria(String categoria) {
+        if (this.categoriasIngreso.containsKey(categoria) || this.categoriasGasto.containsKey(categoria)) {
+            System.out.println("La categoría ya existe.");
+            return false;
+        }
         return true;
     }
 
@@ -122,37 +214,6 @@ public class GestionFinanciera {
         return text;
     }
 
-    public boolean editarNombreCategoria(String viejoNombre, String nuevoNombre) {
-        // Verificar si el nuevo nombre ya existe en el sistema
-        if (validarCategoria(nuevoNombre)) {
-            if (this.categoriasIngreso.containsKey(viejoNombre)) {
-                CategoriaIngreso cat = this.categoriasIngreso.get(viejoNombre);
-                this.categoriasIngreso.remove(viejoNombre);
-                this.categoriasIngreso.put(nuevoNombre, cat);
-                for (Transaccion transaccion : cat.getTransacciones()) {
-                    transaccion.setCategoria(nuevoNombre);
-                }
-                return true;
-            } else if (this.categoriasGasto.containsKey(viejoNombre)) {
-                CategoriaGasto cat = this.categoriasGasto.get(viejoNombre);
-                this.categoriasGasto.remove(viejoNombre);
-                this.categoriasGasto.put(nuevoNombre, cat);
-                for (Transaccion transaccion : cat.getTransacciones()) {
-                    transaccion.setCategoria(nuevoNombre);
-                }
-                return true;
-            } else {
-                System.out.println("La categoría '" + viejoNombre + "' no existe.");
-                return false;
-            }
-        } else {
-            System.out.println("El nuevo nombre de categoría '" + nuevoNombre + "' ya existe en el sistema.");
-            return false;
-        }
-    }
-
-
-
     private void bubbleSort(List<String> list) {
         int n = list.size();
         for (int i = 0; i < n - 1; i++) {
@@ -167,84 +228,23 @@ public class GestionFinanciera {
         }
     }
 
-    public Map<String, CategoriaIngreso> getCategoriasIngreso() {
-        return categoriasIngreso;
-    }
 
-    public Map<String, CategoriaGasto> getCategoriasGasto() {
-        return categoriasGasto;
-    }
-
-    public void setPresupuestoTotal(double presupuestoTotal) {
-        this.presupuestoTotal = presupuestoTotal;
-    }
-
-    public double getPresupuestoTotal() {
-        return presupuestoTotal;
-    }
-
-    public boolean asignarPresupuestoACategoriaGasto(String nombreCategoria, double monto) {
-        CategoriaGasto cat = this.categoriasGasto.get(nombreCategoria);
-
-        // Verifica si la categoría existe
-        if (cat == null) {
-            System.out.println("La categoría proporcionada no existe.");
-            return false;
-        }
-
-        // Verifica si el monto excede al presupuesto total
-        if (monto > presupuestoTotal) {
-            System.out.println("El monto excede el presupuesto total.");
-            return false;
-        }
-
-        double presupuestoActual = cat.getPresupuesto();
-        double totalAsignado = this.categoriasGasto.values().stream()
-                .mapToDouble(CategoriaGasto::getPresupuesto)
-                .sum();
-
-        // Verifica si el monto, más lo ya asignado (excluyendo el presupuesto actual de la categoría), excede al presupuesto total
-        if ((totalAsignado - presupuestoActual + monto) > presupuestoTotal) {
-            System.out.println("El monto excede el presupuesto total disponible.");
-            return false;
-        }
-
-        // Asigna el nuevo presupuesto a la categoría de gasto
-        cat.setPresupuesto(monto);
-
-        // Restamos la diferencia entre el monto nuevo y el presupuesto actual del presupuesto total
-        presupuestoTotal -= (monto - presupuestoActual);
-
-        return true;
-    }
-
-
-    public int eliminarCategoria(String categoria) {
-        if (this.categoriasIngreso.containsKey(categoria)) {
-            CategoriaIngreso cit = this.categoriasIngreso.get(categoria);
-            if (!cit.getTransacciones().isEmpty()) {
-                System.out.println("La categoría de gasto '" + categoria + "' tiene transacciones asignadas. No se puede eliminar.");
-                return 1;
+    private void insertionSort(List<Transaccion> transacciones, boolean ascendente) {
+        for (int i = 1; i < transacciones.size(); ++i) {
+            Transaccion key = transacciones.get(i);
+            int j = i - 1;
+            if (ascendente) {
+                while (j >= 0 && transacciones.get(j).getMonto() > key.getMonto()) {
+                    transacciones.set(j + 1, transacciones.get(j));
+                    j = j - 1;
+                }
             } else {
-                this.categoriasIngreso.remove(categoria);
-                System.out.println("Categoría de gasto '" + categoria + "' eliminada con éxito.");
-                return 0;
+                while (j >= 0 && transacciones.get(j).getMonto() < key.getMonto()) {
+                    transacciones.set(j + 1, transacciones.get(j));
+                    j = j - 1;
+                }
             }
-        } else if (this.categoriasGasto.containsKey(categoria)) {
-            CategoriaGasto cat = this.categoriasGasto.get(categoria);
-            // Verificar si hay presupuesto asignado y transacciones
-            if (!cat.getTransacciones().isEmpty()) {
-                System.out.println("La categoría de gasto '" + categoria + "' tiene transacciones asignadas. No se puede eliminar.");
-                return 1;
-            } else {
-                this.presupuestoTotal += cat.getPresupuesto();
-                this.categoriasGasto.remove(categoria);
-                System.out.println("Categoría de gasto '" + categoria + "' eliminada con éxito.");
-                return 0;
-            }
-        } else {
-            System.out.println("La categoría '" + categoria + "' no existe.");
-            return -1;
+            transacciones.set(j + 1, key);
         }
     }
 
@@ -270,24 +270,20 @@ public class GestionFinanciera {
         return sb.toString();
     }
 
+    public Map<String, CategoriaIngreso> getCategoriasIngreso() {
+        return categoriasIngreso;
+    }
 
-    private void insertionSort(List<Transaccion> transacciones, boolean ascendente) {
-        for (int i = 1; i < transacciones.size(); ++i) {
-            Transaccion key = transacciones.get(i);
-            int j = i - 1;
-            if (ascendente) {
-                while (j >= 0 && transacciones.get(j).getMonto() > key.getMonto()) {
-                    transacciones.set(j + 1, transacciones.get(j));
-                    j = j - 1;
-                }
-            } else {
-                while (j >= 0 && transacciones.get(j).getMonto() < key.getMonto()) {
-                    transacciones.set(j + 1, transacciones.get(j));
-                    j = j - 1;
-                }
-            }
-            transacciones.set(j + 1, key);
-        }
+    public Map<String, CategoriaGasto> getCategoriasGasto() {
+        return categoriasGasto;
+    }
+
+    public void setPresupuestoTotal(double presupuestoTotal) {
+        this.presupuestoTotal = presupuestoTotal;
+    }
+
+    public double getPresupuestoTotal() {
+        return presupuestoTotal;
     }
 
 }

@@ -54,6 +54,8 @@ public class app extends JFrame {
     private JButton eliminarButton;
     private JCheckBox ascendenteCheckBox;
     private JCheckBox descendenteCheckBox;
+    private JTextField textFieldMontoAumentar;
+    private JButton aumentarPresupuestoButton;
     private JButton quemarDatosButton;
     private JTextArea textAreaTransaccionesQuemado;
     private JComboBox comboBoxCategoriaEditarTransaccion;

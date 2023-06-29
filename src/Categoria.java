@@ -18,6 +18,16 @@ public abstract class Categoria {
         return true;  // La transacción se agrega exitosamente por defecto
     }
 
+    public int editarTransaccion(int id, double monto, String descripcion) {
+        Transaccion transaccion = buscarTransaccion(id);
+        if (transaccion != null) {
+            transaccion.setMonto(monto);
+            transaccion.setDescripcion(descripcion);
+            return 1;
+        }
+        return -1;
+    }
+
     public boolean eliminarTransaccion(int id) {
         Transaccion transaccion = buscarTransaccion(id);
         if (transaccion != null) {
@@ -25,6 +35,10 @@ public abstract class Categoria {
             return true;  // La transacción se elimina exitosamente
         }
         return false;  // No se encontró la transacción
+    }
+
+    public Transaccion buscarTransaccion(int id) {
+        return transacciones.stream().filter(t -> t.getId() == id).findFirst().orElse(null);
     }
 
     public List<Transaccion> getTransacciones() {
@@ -37,23 +51,5 @@ public abstract class Categoria {
 
     public int actnextId() {
         return nextId++;
-    }
-
-    public Transaccion buscarTransaccion(int id) {
-        return transacciones.stream().filter(t -> t.getId() == id).findFirst().orElse(null);
-    }
-
-    public int editarTransaccion(int id, double monto, String descripcion) {
-        Transaccion transaccion = buscarTransaccion(id);
-        if (transaccion != null) {
-            transaccion.setMonto(monto);
-            transaccion.setDescripcion(descripcion);
-            return 1;
-        }
-        return -1;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
     }
 }
