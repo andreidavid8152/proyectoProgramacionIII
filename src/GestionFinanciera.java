@@ -149,6 +149,16 @@ public class GestionFinanciera {
         return true;
     }
 
+    public void aumentarPresupuestoACategoriGasto(String nombre, double monto){
+        CategoriaGasto cat = this.categoriasGasto.get(nombre);
+
+        cat.setPresupuesto(cat.getPresupuesto()+monto);
+
+        // Restamos la diferencia entre el monto nuevo y el presupuesto actual del presupuesto total
+        presupuestoTotal -= monto;
+
+    }
+
     public boolean validarCategoria(String categoria) {
         if (this.categoriasIngreso.containsKey(categoria) || this.categoriasGasto.containsKey(categoria)) {
             System.out.println("La categoría ya existe.");

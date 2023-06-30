@@ -54,8 +54,9 @@ public class app extends JFrame {
     private JButton eliminarButton;
     private JCheckBox ascendenteCheckBox;
     private JCheckBox descendenteCheckBox;
-    private JTextField textFieldMontoAumentar;
     private JButton aumentarPresupuestoButton;
+    private JTextField textFieldPresupuestoActual;
+    private JButton aumentarPresupuestoCategoriaButton;
     private JButton quemarDatosButton;
     private JTextArea textAreaTransaccionesQuemado;
     private JComboBox comboBoxCategoriaEditarTransaccion;
@@ -170,13 +171,13 @@ public class app extends JFrame {
 
                 if (comboBoxPresupuestoGastos.getSelectedItem() != null) {
                     if (!comboBoxPresupuestoGastos.getSelectedItem().toString().equals("")) {
-                        System.out.println("Asdf");
                         textFieldMontoAsignarCatGasto.setEditable(true);
                         asignarPresupuestoGastoButton.setEnabled(true);
+                        aumentarPresupuestoCategoriaButton.setEnabled(true);
                     } else {
-                        System.out.println("sadfs");
                         textFieldMontoAsignarCatGasto.setEditable(false);
                         asignarPresupuestoGastoButton.setEnabled(false);
+                        aumentarPresupuestoCategoriaButton.setEnabled(false);
                     }
                 }
 
@@ -208,9 +209,9 @@ public class app extends JFrame {
                     CategoriaGasto selectedCategoriaGasto = sistema.getCategoriasGasto().get(selectedCategory);
                     if (selectedCategoriaGasto != null) {
                         presupuestoCategoriaLabel.setText("Presupuesto Categoria: " + selectedCategoriaGasto.getPresupuesto());
-                    } else {
-                        System.out.println("La categoría seleccionada no existe.");
                     }
+                }else{
+                    presupuestoCategoriaLabel.setText("Presupuesto Categoria: " + "0.0");
                 }
             }
         });
@@ -287,213 +288,37 @@ public class app extends JFrame {
                 }
             }
         });
-    }
-
-    public void eliminarTransaccion() {
-        if (verificarCampoTexto(nombreCategoriaEliminar.getText())) {
-            if (!eliminarIdTransaccion.getText().isEmpty()) {
-                //Gasto
-                if (sistema.getCategoriasGasto().get(nombreCategoriaEliminar.getText()) != null) {
-                    if (sistema.getCategoriasGasto().get(nombreCategoriaEliminar.getText()).eliminarTransaccion(Integer.parseInt(eliminarIdTransaccion.getText()))) {
-                        JOptionPane.showMessageDialog(null, "Transaccion eliminada correctamente");
-                    } else {
-                        JOptionPane.showMessageDialog(null, "Error. No existe ese id");
+        aumentarPresupuestoButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                aumentarPresupuestoGeneral();
+            }
+        });
+        comboBoxPresupuestoGastos.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                String selectedCategory = (String) comboBoxPresupuestoGastos.getSelectedItem();
+                if (selectedCategory != null && !selectedCategory.equals("")) {
+                    CategoriaGasto selectedCategoriaGasto = sistema.getCategoriasGasto().get(selectedCategory);
+                    if (selectedCategoriaGasto != null) {
+                        textFieldPresupuestoActual.setText(String.valueOf(selectedCategoriaGasto.getPresupuesto()));
                     }
-                }else if (sistema.getCategoriasIngreso().get(nombreCategoriaEliminar.getText()) != null) {
-                    if (sistema.getCategoriasIngreso().get(nombreCategoriaEliminar.getText()).eliminarTransaccion(Integer.parseInt(eliminarIdTransaccion.getText()))) {
-                        JOptionPane.showMessageDialog(null, "Transaccion eliminada correctamente");
-                    } else {
-                        JOptionPane.showMessageDialog(null, "Error. No existe ese id");
-                    }
-                } else {
-                    JOptionPane.showMessageDialog(null, "Error. No existe esa categoria");
+                }else{
+                    textFieldPresupuestoActual.setText("0.0");
                 }
-            } else {
-                JOptionPane.showMessageDialog(null, "Error. El campo id solo contiene numeros.");
             }
-        } else {
-            JOptionPane.showMessageDialog(null, "Error. El campo nombre solo contiene caracteres.");
-        }
-    }
-
-    public void actualizarEditarTransaccion() {
-        if (!textFieldMontoEditarTransaccion.getText().isEmpty() && !textFieldMontoEditarTransaccion.getText().equals("0")) {
-            if (!textAreaEditarDescripTransaccion.getText().isEmpty()) {
-                //Gasto
-                if (sistema.getCategoriasGasto().get(textFieldEditarCategoria.getText()) != null) {
-                    int respGasto = sistema.getCategoriasGasto().get(textFieldEditarCategoria.getText()).editarTransaccion(Integer.parseInt(idTransaccionLabel.getText()),
-                            Double.parseDouble(textFieldMontoEditarTransaccion.getText()),
-                            textAreaEditarDescripTransaccion.getText());
-                    if (respGasto == 1) {
-                        JOptionPane.showMessageDialog(null, "Se ha modificado correctamente la transaccion");
-                    } else if (respGasto == 0) {
-
-                        JOptionPane.showMessageDialog(null, "Error. No se puede asignar porque sobrepasa el presupuesto.");
-                    } else {
-                        textFieldMontoEditarTransaccion.setEditable(false);
-                        textAreaEditarDescripTransaccion.setEditable(false);
-                        actualizarButton.setEnabled(false);
-                        JOptionPane.showMessageDialog(null, "Error. No existe ningun id asi.");
-                    }
-                }
-
-                //Ingreso
-                if (sistema.getCategoriasIngreso().get(textFieldEditarCategoria.getText()) != null) {
-                    int respIngreso = sistema.getCategoriasIngreso().get(textFieldEditarCategoria.getText()).editarTransaccion(Integer.parseInt(idTransaccionLabel.getText()),
-                            Double.parseDouble(textFieldMontoEditarTransaccion.getText()),
-                            textAreaEditarDescripTransaccion.getText());
-                    if (respIngreso == 1) {
-                        JOptionPane.showMessageDialog(null, "Se ha modificado correctamente la transaccion");
-                    } else {
-                        textFieldMontoEditarTransaccion.setEditable(false);
-                        textAreaEditarDescripTransaccion.setEditable(false);
-                        actualizarButton.setEnabled(false);
-                        JOptionPane.showMessageDialog(null, "Error. No existe ningun id asi.");
-                    }
-                }
-            } else {
-                JOptionPane.showMessageDialog(null, "Error. No debe ser nulo");
+        });
+        aumentarPresupuestoCategoriaButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                aumentarPresupuestoGasto();
             }
-        } else {
-            JOptionPane.showMessageDialog(null, "Error. Asignar unicamente enteros positivos");
-        }
-
-
+        });
     }
 
-    public void buscarEditarTransaccion() {
-        if (verificarCampoTexto(textFieldEditarCategoria.getText())) {
+    //CATEGORIAS.-
 
-            if (!idTransaccionLabel.getText().isEmpty() && !idTransaccionLabel.getText().equals("0")) {
-
-                if (sistema.getCategoriasGasto().get(textFieldEditarCategoria.getText()) != null) {
-
-                    if (sistema.getCategoriasGasto().get(textFieldEditarCategoria.getText()).buscarTransaccion(Integer.parseInt(idTransaccionLabel.getText())) != null) {
-                        textFieldMontoEditarTransaccion.setEditable(true);
-                        textAreaEditarDescripTransaccion.setEditable(true);
-                        actualizarButton.setEnabled(true);
-                    } else {
-                        textFieldMontoEditarTransaccion.setEditable(false);
-                        textAreaEditarDescripTransaccion.setEditable(false);
-                        actualizarButton.setEnabled(false);
-                        JOptionPane.showMessageDialog(null, "Error. No se ha encontrado esa transaccion");
-                    }
-
-
-                } else if (sistema.getCategoriasIngreso().get(textFieldEditarCategoria.getText()) != null) {
-
-                    if (sistema.getCategoriasIngreso().get(textFieldEditarCategoria.getText()).buscarTransaccion(Integer.parseInt(idTransaccionLabel.getText())) != null) {
-                        textFieldMontoEditarTransaccion.setEditable(true);
-                        textAreaEditarDescripTransaccion.setEditable(true);
-                        actualizarButton.setEnabled(true);
-                    } else {
-                        textFieldMontoEditarTransaccion.setEditable(false);
-                        textAreaEditarDescripTransaccion.setEditable(false);
-                        actualizarButton.setEnabled(false);
-                        JOptionPane.showMessageDialog(null, "Error. No se ha encontrado esa transaccion");
-                    }
-
-                } else {
-                    textFieldMontoEditarTransaccion.setEditable(false);
-                    textAreaEditarDescripTransaccion.setEditable(false);
-                    actualizarButton.setEnabled(false);
-                    JOptionPane.showMessageDialog(null, "Error. No se ha encontrado la categoria");
-                }
-
-
-            } else {
-                textFieldMontoEditarTransaccion.setEditable(false);
-                textAreaEditarDescripTransaccion.setEditable(false);
-                actualizarButton.setEnabled(false);
-                JOptionPane.showMessageDialog(null, "Error. El campo id solo acepta enteros positivos");
-            }
-
-        } else {
-            textFieldMontoEditarTransaccion.setEditable(false);
-            textAreaEditarDescripTransaccion.setEditable(false);
-            actualizarButton.setEnabled(false);
-            JOptionPane.showMessageDialog(null, "Error. El campo nombre solo acepta caracteres");
-        }
-    }
-
-    public void eliminarCategoria() {
-        if (verificarCampoTexto(textFieldNombreEliminarCategoria.getText())) {
-            int resp = sistema.eliminarCategoria(textFieldNombreEliminarCategoria.getText());
-            if (resp == 0) {
-                actualizarComboBoxes();
-                JOptionPane.showMessageDialog(null, "Categoria eliminada exitosamente");
-            } else if (resp == 1) {
-                JOptionPane.showMessageDialog(null, "Error. La categoría tiene transacciones asignadas");
-            } else {
-                JOptionPane.showMessageDialog(null, "Error. La categoría no existe");
-            }
-        } else {
-            JOptionPane.showMessageDialog(null, "Error. El campo nombre solo acepta caracteres");
-        }
-    }
-
-    public void asignarPresupuestoCategoria() {
-        if (!textFieldMontoAsignarCatGasto.getText().isEmpty()) {
-            if (sistema.asignarPresupuestoACategoriaGasto(comboBoxPresupuestoGastos.getSelectedItem().toString(), Double.parseDouble(textFieldMontoAsignarCatGasto.getText()))) {
-                labelPresupuestoTotal.setText("Presupuesto Total: " + sistema.getPresupuestoTotal());
-                JOptionPane.showMessageDialog(null, "Presupuesto asignado correctamente");
-            } else {
-                JOptionPane.showMessageDialog(null, "No se puede asignar un monto mayor al presupuesto total.");
-            }
-        } else {
-            JOptionPane.showMessageDialog(null, "Error. El monto total esta vacio");
-        }
-    }
-
-    public void asignarPresupuestoGeneral() {
-        if (!textFiedlPresupuestoTotal.getText().isEmpty() && !textFiedlPresupuestoTotal.getText().equals("0")) {
-            sistema.setPresupuestoTotal(Double.parseDouble(textFiedlPresupuestoTotal.getText()));
-            labelPresupuestoTotal.setText("Presupuesto Total: " + sistema.getPresupuestoTotal());
-        } else {
-            JOptionPane.showMessageDialog(null, "Error. El monto total deber ser un entero positivo");
-        }
-    }
-
-    public void editarNombreCategoria() {
-        if (verificarCampoTexto(textFieldNuevoNombreEditarCategoria.getText())) {
-            if (sistema.editarNombreCategoria(textFieldNombreEditarCategoria.getText(), textFieldNuevoNombreEditarCategoria.getText())) {
-                textFieldNombreEditarCategoria.setText("");
-                textFieldNuevoNombreEditarCategoria.setText("");
-                textFieldNuevoNombreEditarCategoria.setEditable(false);
-                editarCategoriaButton.setEnabled(false);
-
-                actualizarComboBoxes();
-
-                JOptionPane.showMessageDialog(null, "Categoria actualizada correctamente");
-            } else {
-                JOptionPane.showMessageDialog(null, "Error. El nuevo nombre ya esta asignado a otra categoria");
-            }
-        } else {
-            JOptionPane.showMessageDialog(null, "Error. El campo nombre solo acepta caracteres.");
-        }
-    }
-
-    public void buscarCategoriaEditar() {
-        if (verificarCampoTexto(textFieldNombreEditarCategoria.getText())) {
-            if (!sistema.validarCategoria(textFieldNombreEditarCategoria.getText())) {
-                textFieldNuevoNombreEditarCategoria.setEditable(true);
-                editarCategoriaButton.setEnabled(true);
-            } else {
-                JOptionPane.showMessageDialog(null, "Error. No se ha encontrado ninguna categoria con ese nombre");
-                textFieldNuevoNombreEditarCategoria.setEditable(false);
-                editarCategoriaButton.setEnabled(false);
-            }
-        } else {
-            JOptionPane.showMessageDialog(null, "Error. El campo nombre solo acepta caracteres.");
-        }
-    }
-
-    public void activarCamposCategorias(boolean bool) {
-        textFieldNombreCategoria.setEditable(bool);
-        crearCategoriaButton.setEnabled(bool);
-        textFieldNombreCategoria.setText("");
-    }
-
+    //Crear
     public void crearCategoria() {
         if (verificarCampoTexto(textFieldNombreCategoria.getText())) {
             String nombreCategoria = textFieldNombreCategoria.getText();
@@ -519,6 +344,58 @@ public class app extends JFrame {
         }
     }
 
+    //Editar
+    public void buscarCategoriaEditar() {
+        if (verificarCampoTexto(textFieldNombreEditarCategoria.getText())) {
+            if (!sistema.validarCategoria(textFieldNombreEditarCategoria.getText())) {
+                textFieldNuevoNombreEditarCategoria.setEditable(true);
+                editarCategoriaButton.setEnabled(true);
+            } else {
+                JOptionPane.showMessageDialog(null, "Error. No se ha encontrado ninguna categoria con ese nombre");
+                textFieldNuevoNombreEditarCategoria.setEditable(false);
+                editarCategoriaButton.setEnabled(false);
+            }
+        } else {
+            JOptionPane.showMessageDialog(null, "Error. El campo nombre solo acepta caracteres.");
+        }
+    }
+    public void editarNombreCategoria() {
+        if (verificarCampoTexto(textFieldNuevoNombreEditarCategoria.getText())) {
+            if (sistema.editarNombreCategoria(textFieldNombreEditarCategoria.getText(), textFieldNuevoNombreEditarCategoria.getText())) {
+                textFieldNombreEditarCategoria.setText("");
+                textFieldNuevoNombreEditarCategoria.setText("");
+                textFieldNuevoNombreEditarCategoria.setEditable(false);
+                editarCategoriaButton.setEnabled(false);
+
+                actualizarComboBoxes();
+
+                JOptionPane.showMessageDialog(null, "Categoria actualizada correctamente");
+            } else {
+                JOptionPane.showMessageDialog(null, "Error. El nuevo nombre ya esta asignado a otra categoria");
+            }
+        } else {
+            JOptionPane.showMessageDialog(null, "Error. El campo nombre solo acepta caracteres.");
+        }
+    }
+
+    //Eliminar
+    public void eliminarCategoria() {
+        if (verificarCampoTexto(textFieldNombreEliminarCategoria.getText())) {
+            int resp = sistema.eliminarCategoria(textFieldNombreEliminarCategoria.getText());
+            if (resp == 0) {
+                actualizarComboBoxes();
+                JOptionPane.showMessageDialog(null, "Categoria eliminada exitosamente");
+            } else if (resp == 1) {
+                JOptionPane.showMessageDialog(null, "Error. La categoría tiene transacciones asignadas");
+            } else {
+                JOptionPane.showMessageDialog(null, "Error. La categoría no existe");
+            }
+        } else {
+            JOptionPane.showMessageDialog(null, "Error. El campo nombre solo acepta caracteres");
+        }
+    }
+
+    //Mostrar
     public void mostrarCategoriasNombre() {
         String texto = "";
         if (aZCheckBox.isSelected()) {
@@ -575,73 +452,9 @@ public class app extends JFrame {
         }
     }
 
-    public void ingresarGasto() {
-        if (!textFieldMontoGasto.getText().isEmpty() && !textFieldMontoGasto.getText().equals("0")) {
-            if (!comboBoxGasto.getSelectedItem().equals("")) {
-                if (!JTextAreaDescripcionGasto.getText().isEmpty()) {
-                    Date fechaActual = new Date();
-                    int resp = sistema.agregarGasto(Double.parseDouble(textFieldMontoGasto.getText()), fechaActual, JTextAreaDescripcionGasto.getText(), comboBoxGasto.getSelectedItem().toString());
-                    if (resp == 1) {
-                        textFieldMontoGasto.setText("");
-                        JTextAreaDescripcionGasto.setText("");
-                        CategoriaGasto selectedCategoriaGasto = sistema.getCategoriasGasto().get(comboBoxGasto.getSelectedItem().toString());
-                        presupuestoCategoriaLabel.setText("Presupuesto Categoria: " + selectedCategoriaGasto.getPresupuesto());
-                        comboBoxGasto.setSelectedIndex(0);
-                        JOptionPane.showMessageDialog(null, "El gasto ha sido agregado correctamente");
-                    } else if (resp == -1) {
-                        JOptionPane.showMessageDialog(null, "Error. No existe la categoria");
-                    } else {
-                        JOptionPane.showMessageDialog(null, "Error. El gasto excede el presupuesto de la categoría.");
-                    }
-                } else {
-                    JOptionPane.showMessageDialog(null, "Error. La descripcion esta vacia");
-                }
-            } else {
-                presupuestoCategoriaLabel.setText("Presupuesto Categoria: 0");
-                JOptionPane.showMessageDialog(null, "Error. No hay ninguna categoria seleccionada");
-            }
-        } else {
-            JOptionPane.showMessageDialog(null, "Error. El monto debe ser un entero positivo");
-        }
-    }
+    //Generar Datos
 
-    public void ingresarIngreso() {
-
-        if (!textFieldMontoIngreso.getText().isEmpty() && !textFieldMontoIngreso.getText().equals("0")) {
-            if (!comboBoxIngreso.getSelectedItem().equals("")) {
-                if (!textAreaDescripcionIngreso.getText().isEmpty()) {
-                    Date fechaActual = new Date();
-                    if (sistema.agregarIngreso(Double.parseDouble(textFieldMontoIngreso.getText()), fechaActual, textAreaDescripcionIngreso.getText(), comboBoxIngreso.getSelectedItem().toString())) {
-                        textFieldMontoIngreso.setText("");
-                        textAreaDescripcionIngreso.setText("");
-                        comboBoxIngreso.setSelectedIndex(0);
-                        JOptionPane.showMessageDialog(null, "El ingreso ha sido agregado correctamente");
-                    } else {
-                        JOptionPane.showMessageDialog(null, "No existe la categoria");
-                    }
-                } else {
-                    JOptionPane.showMessageDialog(null, "Error. La descripcion esta vacia");
-                }
-            } else {
-                JOptionPane.showMessageDialog(null, "Error. No hay ninguna categoria seleccionada");
-            }
-        } else {
-            JOptionPane.showMessageDialog(null, "Error. El monto debe ser un entero positivo");
-        }
-    }
-
-    //funcion que verifica los campos de texto
-    public boolean verificarCampoTexto(String textField) {
-        // Verifica si el campo de texto está vacío
-        if (textField == null || textField.isEmpty()) {
-            return false;
-        }
-
-        // Verifica si el campo de texto contiene únicamente letras
-        return textField.matches("[a-zA-Z]+");
-    }
-
-
+    //---Principal---
     public void generarCategorias() {
         String texto = "Las categorias agregadas son:";
         if (sistema.crearCategoriaIngreso("VentaSoftware")) {
@@ -690,15 +503,13 @@ public class app extends JFrame {
         textAreaGenerarDatosCate.setText(texto);
         generarDatosButton.setEnabled(false);
     }
-
     public void generarPresupuestos() {
         sistema.setPresupuestoTotal(1000);
         sistema.asignarPresupuestoACategoriaGasto("DesarrolloSoftware", 200);
         sistema.asignarPresupuestoACategoriaGasto("GastosOficina", 200);
         sistema.asignarPresupuestoACategoriaGasto("GastoMarketing", 200);
-        labelPresupuestoTotal.setText(String.valueOf(sistema.getPresupuestoTotal()));
+        labelPresupuestoTotal.setText(String.valueOf("Presupuesto Total: " + sistema.getPresupuestoTotal()));
     }
-
     public void generarGastoseIngresos() {
 
         Random random = new Random();
@@ -751,6 +562,290 @@ public class app extends JFrame {
         sistema.agregarGasto(35, fechaAleatoria, "pago 3", "GastoMarketing");
     }
 
+
+    //TRANSACCIONES.-
+
+    //Ingreso
+    public void ingresarIngreso() {
+
+        if (!textFieldMontoIngreso.getText().isEmpty() && !textFieldMontoIngreso.getText().equals("0")) {
+            if (!comboBoxIngreso.getSelectedItem().equals("")) {
+                if (!textAreaDescripcionIngreso.getText().isEmpty()) {
+                    Date fechaActual = new Date();
+                    if (sistema.agregarIngreso(Double.parseDouble(textFieldMontoIngreso.getText()), fechaActual, textAreaDescripcionIngreso.getText(), comboBoxIngreso.getSelectedItem().toString())) {
+                        textFieldMontoIngreso.setText("");
+                        textAreaDescripcionIngreso.setText("");
+                        comboBoxIngreso.setSelectedIndex(0);
+                        JOptionPane.showMessageDialog(null, "El ingreso ha sido agregado correctamente");
+                    } else {
+                        JOptionPane.showMessageDialog(null, "No existe la categoria");
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(null, "Error. La descripcion esta vacia");
+                }
+            } else {
+                JOptionPane.showMessageDialog(null, "Error. No hay ninguna categoria seleccionada");
+            }
+        } else {
+            JOptionPane.showMessageDialog(null, "Error. El monto debe ser un entero positivo");
+        }
+    }
+
+    //Gasto
+    public void ingresarGasto() {
+        if (!textFieldMontoGasto.getText().isEmpty() && !textFieldMontoGasto.getText().equals("0")) {
+            if (!comboBoxGasto.getSelectedItem().equals("")) {
+                if (!JTextAreaDescripcionGasto.getText().isEmpty()) {
+                    Date fechaActual = new Date();
+                    int resp = sistema.agregarGasto(Double.parseDouble(textFieldMontoGasto.getText()), fechaActual, JTextAreaDescripcionGasto.getText(), comboBoxGasto.getSelectedItem().toString());
+                    if (resp == 1) {
+                        textFieldMontoGasto.setText("");
+                        JTextAreaDescripcionGasto.setText("");
+                        CategoriaGasto selectedCategoriaGasto = sistema.getCategoriasGasto().get(comboBoxGasto.getSelectedItem().toString());
+                        presupuestoCategoriaLabel.setText("Presupuesto Categoria: " + selectedCategoriaGasto.getPresupuesto());
+                        comboBoxGasto.setSelectedIndex(0);
+                        JOptionPane.showMessageDialog(null, "El gasto ha sido agregado correctamente");
+                    } else if (resp == -1) {
+                        JOptionPane.showMessageDialog(null, "Error. No existe la categoria");
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Error. El gasto excede el presupuesto de la categoría.");
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(null, "Error. La descripcion esta vacia");
+                }
+            } else {
+                presupuestoCategoriaLabel.setText("Presupuesto Categoria: 0");
+                JOptionPane.showMessageDialog(null, "Error. No hay ninguna categoria seleccionada");
+            }
+        } else {
+            JOptionPane.showMessageDialog(null, "Error. El monto debe ser un entero positivo");
+        }
+    }
+
+    //Editar
+    public void buscarEditarTransaccion() {
+        if (verificarCampoTexto(textFieldEditarCategoria.getText())) {
+
+            if (!idTransaccionLabel.getText().isEmpty() && !idTransaccionLabel.getText().equals("0")) {
+
+                if (sistema.getCategoriasGasto().get(textFieldEditarCategoria.getText()) != null) {
+
+                    if (sistema.getCategoriasGasto().get(textFieldEditarCategoria.getText()).buscarTransaccion(Integer.parseInt(idTransaccionLabel.getText())) != null) {
+                        textFieldMontoEditarTransaccion.setEditable(true);
+                        textAreaEditarDescripTransaccion.setEditable(true);
+                        actualizarButton.setEnabled(true);
+                    } else {
+                        textFieldMontoEditarTransaccion.setEditable(false);
+                        textAreaEditarDescripTransaccion.setEditable(false);
+                        actualizarButton.setEnabled(false);
+                        JOptionPane.showMessageDialog(null, "Error. No se ha encontrado esa transaccion");
+                    }
+
+
+                } else if (sistema.getCategoriasIngreso().get(textFieldEditarCategoria.getText()) != null) {
+
+                    if (sistema.getCategoriasIngreso().get(textFieldEditarCategoria.getText()).buscarTransaccion(Integer.parseInt(idTransaccionLabel.getText())) != null) {
+                        textFieldMontoEditarTransaccion.setEditable(true);
+                        textAreaEditarDescripTransaccion.setEditable(true);
+                        actualizarButton.setEnabled(true);
+                    } else {
+                        textFieldMontoEditarTransaccion.setEditable(false);
+                        textAreaEditarDescripTransaccion.setEditable(false);
+                        actualizarButton.setEnabled(false);
+                        JOptionPane.showMessageDialog(null, "Error. No se ha encontrado esa transaccion");
+                    }
+
+                } else {
+                    textFieldMontoEditarTransaccion.setEditable(false);
+                    textAreaEditarDescripTransaccion.setEditable(false);
+                    actualizarButton.setEnabled(false);
+                    JOptionPane.showMessageDialog(null, "Error. No se ha encontrado la categoria");
+                }
+
+
+            } else {
+                textFieldMontoEditarTransaccion.setEditable(false);
+                textAreaEditarDescripTransaccion.setEditable(false);
+                actualizarButton.setEnabled(false);
+                JOptionPane.showMessageDialog(null, "Error. El campo id solo acepta enteros positivos");
+            }
+
+        } else {
+            textFieldMontoEditarTransaccion.setEditable(false);
+            textAreaEditarDescripTransaccion.setEditable(false);
+            actualizarButton.setEnabled(false);
+            JOptionPane.showMessageDialog(null, "Error. El campo nombre solo acepta caracteres");
+        }
+    }
+    public void actualizarEditarTransaccion() {
+        if (!textFieldMontoEditarTransaccion.getText().isEmpty() && !textFieldMontoEditarTransaccion.getText().equals("0")) {
+            if (!textAreaEditarDescripTransaccion.getText().isEmpty()) {
+                //Gasto
+                if (sistema.getCategoriasGasto().get(textFieldEditarCategoria.getText()) != null) {
+                    int respGasto = sistema.getCategoriasGasto().get(textFieldEditarCategoria.getText()).editarTransaccion(Integer.parseInt(idTransaccionLabel.getText()),
+                            Double.parseDouble(textFieldMontoEditarTransaccion.getText()),
+                            textAreaEditarDescripTransaccion.getText());
+                    if (respGasto == 1) {
+                        JOptionPane.showMessageDialog(null, "Se ha modificado correctamente la transaccion");
+                    } else if (respGasto == 0) {
+
+                        JOptionPane.showMessageDialog(null, "Error. No se puede asignar porque sobrepasa el presupuesto.");
+                    } else {
+                        textFieldMontoEditarTransaccion.setEditable(false);
+                        textAreaEditarDescripTransaccion.setEditable(false);
+                        actualizarButton.setEnabled(false);
+                        JOptionPane.showMessageDialog(null, "Error. No existe ningun id asi.");
+                    }
+                }
+
+                //Ingreso
+                if (sistema.getCategoriasIngreso().get(textFieldEditarCategoria.getText()) != null) {
+                    int respIngreso = sistema.getCategoriasIngreso().get(textFieldEditarCategoria.getText()).editarTransaccion(Integer.parseInt(idTransaccionLabel.getText()),
+                            Double.parseDouble(textFieldMontoEditarTransaccion.getText()),
+                            textAreaEditarDescripTransaccion.getText());
+                    if (respIngreso == 1) {
+                        JOptionPane.showMessageDialog(null, "Se ha modificado correctamente la transaccion");
+                    } else {
+                        textFieldMontoEditarTransaccion.setEditable(false);
+                        textAreaEditarDescripTransaccion.setEditable(false);
+                        actualizarButton.setEnabled(false);
+                        JOptionPane.showMessageDialog(null, "Error. No existe ningun id asi.");
+                    }
+                }
+            } else {
+                JOptionPane.showMessageDialog(null, "Error. No debe ser nulo");
+            }
+        } else {
+            JOptionPane.showMessageDialog(null, "Error. Asignar unicamente enteros positivos");
+        }
+
+
+    }
+
+    //Eliminar
+    public void eliminarTransaccion() {
+        if (verificarCampoTexto(nombreCategoriaEliminar.getText())) {
+            if (!eliminarIdTransaccion.getText().isEmpty()) {
+                //Gasto
+                if (sistema.getCategoriasGasto().get(nombreCategoriaEliminar.getText()) != null) {
+                    if (sistema.getCategoriasGasto().get(nombreCategoriaEliminar.getText()).eliminarTransaccion(Integer.parseInt(eliminarIdTransaccion.getText()))) {
+                        JOptionPane.showMessageDialog(null, "Transaccion eliminada correctamente");
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Error. No existe ese id");
+                    }
+                }else if (sistema.getCategoriasIngreso().get(nombreCategoriaEliminar.getText()) != null) {
+                    if (sistema.getCategoriasIngreso().get(nombreCategoriaEliminar.getText()).eliminarTransaccion(Integer.parseInt(eliminarIdTransaccion.getText()))) {
+                        JOptionPane.showMessageDialog(null, "Transaccion eliminada correctamente");
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Error. No existe ese id");
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(null, "Error. No existe esa categoria");
+                }
+            } else {
+                JOptionPane.showMessageDialog(null, "Error. El campo id solo contiene numeros.");
+            }
+        } else {
+            JOptionPane.showMessageDialog(null, "Error. El campo nombre solo contiene caracteres.");
+        }
+    }
+
+    //Mostrar
+    public void mostrarTransaccionesCategoria() {
+        String text = "";
+        String categoria = "";
+        if(ascendenteCheckBox.isSelected()){
+            text =sistema.ordenarTransacciones(comboBoxMostrarTransacciones.getSelectedItem().toString(), true);
+        }else if(descendenteCheckBox.isSelected()){
+            text =sistema.ordenarTransacciones(comboBoxMostrarTransacciones.getSelectedItem().toString(), false);
+        }else{
+            categoria = comboBoxMostrarTransacciones.getSelectedItem().toString();
+
+            if (sistema.getCategoriasIngreso().containsKey(categoria)) {
+
+                List<Transaccion> transacciones = sistema.getCategoriasIngreso().get(categoria).getTransacciones();
+
+                for (Transaccion transaccion : transacciones) {
+                    text += transaccion + "\n";
+                }
+            } else {
+                List<Transaccion> transacciones = sistema.getCategoriasGasto().get(categoria).getTransacciones();
+
+                for (Transaccion transaccion : transacciones) {
+                    text += transaccion + "\n";
+                }
+            }
+        }
+        textArea1.setText(text);
+    }
+
+
+    //PRESUPUESTOS.-
+
+    //Asignar o Aumentar
+    public void asignarPresupuestoGeneral() {
+        if (!textFiedlPresupuestoTotal.getText().isEmpty() && !textFiedlPresupuestoTotal.getText().equals("0")) {
+            sistema.setPresupuestoTotal(Double.parseDouble(textFiedlPresupuestoTotal.getText()));
+            // Recorrer el HashMap utilizando un bucle for-each
+            for (Map.Entry<String, CategoriaGasto> entry : sistema.getCategoriasGasto().entrySet()) {
+                entry.getValue().setPresupuesto(0);
+            }
+            labelPresupuestoTotal.setText("Presupuesto Total: " + sistema.getPresupuestoTotal());
+        } else {
+            JOptionPane.showMessageDialog(null, "Error. El monto total deber ser un entero positivo");
+        }
+    }
+    public void aumentarPresupuestoGeneral(){
+        if (!textFiedlPresupuestoTotal.getText().isEmpty() && !textFiedlPresupuestoTotal.getText().equals("0")) {
+            sistema.setPresupuestoTotal(sistema.getPresupuestoTotal()+Double.parseDouble(textFiedlPresupuestoTotal.getText()));
+            labelPresupuestoTotal.setText("Presupuesto Total: " + sistema.getPresupuestoTotal());
+        } else {
+            JOptionPane.showMessageDialog(null, "Error. El monto total deber ser un entero positivo");
+        }
+    }
+
+    //Presupuesto Gastos
+    public void asignarPresupuestoCategoria() {
+        if (!textFieldMontoAsignarCatGasto.getText().isEmpty()) {
+            if (sistema.asignarPresupuestoACategoriaGasto(comboBoxPresupuestoGastos.getSelectedItem().toString(), Double.parseDouble(textFieldMontoAsignarCatGasto.getText()))) {
+                textFieldPresupuestoActual.setText(String.valueOf(sistema.getCategoriasGasto().get(comboBoxPresupuestoGastos.getSelectedItem().toString()).getPresupuesto()));
+                labelPresupuestoTotal.setText("Presupuesto Total: " + sistema.getPresupuestoTotal());
+                JOptionPane.showMessageDialog(null, "Presupuesto asignado correctamente");
+            } else {
+                JOptionPane.showMessageDialog(null, "No se puede asignar un monto mayor al presupuesto total.");
+            }
+        } else {
+            JOptionPane.showMessageDialog(null, "Error. El monto total esta vacio");
+        }
+    }
+
+    public void aumentarPresupuestoGasto(){
+        if (!textFieldMontoAsignarCatGasto.getText().isEmpty()) {
+            sistema.aumentarPresupuestoACategoriGasto(comboBoxPresupuestoGastos.getSelectedItem().toString(), Double.parseDouble(textFieldMontoAsignarCatGasto.getText()));
+            textFieldPresupuestoActual.setText(String.valueOf(sistema.getCategoriasGasto().get(comboBoxPresupuestoGastos.getSelectedItem().toString()).getPresupuesto()));
+            labelPresupuestoTotal.setText("Presupuesto Total: " + sistema.getPresupuestoTotal());
+            JOptionPane.showMessageDialog(null, "Presupuesto asignado correctamente");
+        } else {
+            JOptionPane.showMessageDialog(null, "Error. El monto total esta vacio");
+        }
+    }
+
+
+    //ACTIVACIONES Y ACTUALIZACIONES.-
+    public void activarCamposCategorias(boolean bool) {
+        textFieldNombreCategoria.setEditable(bool);
+        crearCategoriaButton.setEnabled(bool);
+        textFieldNombreCategoria.setText("");
+    }
+    public boolean verificarCampoTexto(String textField) {
+        // Verifica si el campo de texto está vacío
+        if (textField == null || textField.isEmpty()) {
+            return false;
+        }
+
+        // Verifica si el campo de texto contiene únicamente letras
+        return textField.matches("[a-zA-Z]+");
+    }
     public void actualizarComboBoxes() {
         // Limpiar ambos JComboBox
         comboBoxIngreso.removeAllItems();
@@ -789,34 +884,5 @@ public class app extends JFrame {
         }
 
     }
-
-    public void mostrarTransaccionesCategoria() {
-        String text = "";
-        String categoria = "";
-        if(ascendenteCheckBox.isSelected()){
-            text =sistema.ordenarTransacciones(comboBoxMostrarTransacciones.getSelectedItem().toString(), true);
-        }else if(descendenteCheckBox.isSelected()){
-            text =sistema.ordenarTransacciones(comboBoxMostrarTransacciones.getSelectedItem().toString(), false);
-        }else{
-            categoria = comboBoxMostrarTransacciones.getSelectedItem().toString();
-
-            if (sistema.getCategoriasIngreso().containsKey(categoria)) {
-
-                List<Transaccion> transacciones = sistema.getCategoriasIngreso().get(categoria).getTransacciones();
-
-                for (Transaccion transaccion : transacciones) {
-                    text += transaccion + "\n";
-                }
-            } else {
-                List<Transaccion> transacciones = sistema.getCategoriasGasto().get(categoria).getTransacciones();
-
-                for (Transaccion transaccion : transacciones) {
-                    text += transaccion + "\n";
-                }
-            }
-        }
-        textArea1.setText(text);
-    }
-
 
 }
