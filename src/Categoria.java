@@ -5,40 +5,30 @@ import java.util.List;
 public abstract class Categoria {
     protected String nombre;
     protected List<Transaccion> transacciones;
+    protected double impuestos;
     protected int nextId = 1;  // Contador para IDs autoincrementales
 
     public Categoria(String nombre) {
+        impuestos = 0;
         this.nombre = nombre;
         this.transacciones = new ArrayList<>();
     }
 
     public boolean agregarTransaccion(Transaccion transaccion) {
-        Transaccion t = new Transaccion(nextId++, transaccion.getMonto(), transaccion.getFecha(), transaccion.getCategoria(), transaccion.getDescripcion());
+        Transaccion t = new Transaccion(nextId++, transaccion.getMonto(), transaccion.getFecha(), transaccion.getCategoria(), transaccion.getDescripcion(), transaccion.getImpuesto(), transaccion.getTasaImpuesto());
         this.transacciones.add(t);
+        this.impuestos += transaccion.getImpuesto();
         return true;  // La transacción se agrega exitosamente por defecto
     }
 
-    public int editarTransaccion(int id, double monto, String descripcion) {
-        Transaccion transaccion = buscarTransaccion(id);
-        if (transaccion != null) {
-            transaccion.setMonto(monto);
-            transaccion.setDescripcion(descripcion);
-            return 1;
-        }
-        return -1;
-    }
 
-    public boolean eliminarTransaccion(int id) {
-        Transaccion transaccion = buscarTransaccion(id);
-        if (transaccion != null) {
-            transacciones.remove(transaccion);
-            return true;  // La transacción se elimina exitosamente
-        }
-        return false;  // No se encontró la transacción
-    }
 
     public Transaccion buscarTransaccion(int id) {
         return transacciones.stream().filter(t -> t.getId() == id).findFirst().orElse(null);
+    }
+
+    public double getImpuestos() {
+        return impuestos;
     }
 
     public List<Transaccion> getTransacciones() {
@@ -52,4 +42,9 @@ public abstract class Categoria {
     public int actnextId() {
         return nextId++;
     }
+
+    public void setImpuestos(double impuestos) {
+        this.impuestos = impuestos;
+    }
+
 }

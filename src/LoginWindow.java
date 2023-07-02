@@ -6,8 +6,10 @@ public class LoginWindow extends JFrame {
     private SistemaLogin loginSystem;
     private JTextField usernameField;
     private JPasswordField passwordField;
+    private app aplicacion;
 
-    public LoginWindow(SistemaLogin loginSystem) {
+    public LoginWindow(SistemaLogin loginSystem, app aplication) {
+        aplicacion = aplication;
         this.loginSystem = loginSystem;
 
         setTitle("Login");
@@ -109,11 +111,17 @@ public class LoginWindow extends JFrame {
             String password = new String(passwordField.getPassword());
 
             if (loginSystem.login(username, password)) {
-                app app = new app();
-                app.setTitle("Rol de pagos");
-                app.setSize(500, 500);
-                app.setVisible(true);
-                app.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                if(aplicacion == null){
+                    app app = new app(username, loginSystem);
+                    app.setTitle("Rol de pagos");
+                    app.setSize(800, 500);
+                    app.setVisible(true);
+                    app.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                }else{
+                    aplicacion.cambiarUsuario(username);
+                    aplicacion.setVisible(true);
+                }
+
                 dispose();
             } else {
                 JOptionPane.showMessageDialog(null, "Nombre de usuario o contraseña inválidos.");

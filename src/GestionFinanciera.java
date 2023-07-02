@@ -11,26 +11,30 @@ public class GestionFinanciera {
         this.presupuestoTotal = 0;
     }
 
-    public boolean agregarIngreso(double monto, Date fecha, String descripcion, String categoria) {
+    public boolean agregarIngreso(double monto, Date fecha, String descripcion, String categoria, double tasaImpuesto) {
         CategoriaIngreso cat = this.categoriasIngreso.get(categoria);
-        Transaccion transaccion = new Transaccion(cat.getNextId(),monto, fecha, categoria, descripcion);
+        Double impuesto = monto*(tasaImpuesto/100);
+
         if (cat == null) {
             System.out.println("La categoría de ingreso no existe.");
             return false;
         }
+
+        Transaccion transaccion = new Transaccion(cat.getNextId(),monto, fecha, categoria, descripcion, impuesto, tasaImpuesto);
         cat.agregarTransaccion(transaccion);
+        cat.setIngresos(cat.getIngresos()+monto);
         return true;
     }
 
 
-    public int agregarGasto(double monto, Date fecha, String descripcion, String categoria) {
+    public int agregarGasto(double monto, Date fecha, String descripcion, String categoria, double tasaImpuesto) {
         CategoriaGasto cat = this.categoriasGasto.get(categoria);
+        Double impuesto = monto*(tasaImpuesto/100);
         if (cat == null) {
             System.out.println("La categoría de gasto no existe.");
             return -1;
         }
-
-        Transaccion transaccion = new Transaccion(cat.actnextId(), monto, fecha, categoria, descripcion);
+        Transaccion transaccion = new Transaccion(cat.actnextId(), monto, fecha, categoria, descripcion, impuesto, tasaImpuesto);
         if (!cat.agregarTransaccion(transaccion)) {
             System.out.println("El gasto excede el presupuesto de la categoría.");
             return 0;
@@ -117,46 +121,30 @@ public class GestionFinanciera {
     public boolean asignarPresupuestoACategoriaGasto(String nombreCategoria, double monto) {
         CategoriaGasto cat = this.categoriasGasto.get(nombreCategoria);
 
-        // Verifica si la categoría existe
-        if (cat == null) {
-            System.out.println("La categoría proporcionada no existe.");
+        if(presupuestoTotal >= monto || monto <= cat.getPresupuesto()){
+            presupuestoTotal = (presupuestoTotal+cat.getPresupuesto())-monto;
+            cat.setPresupuesto(monto);
+        }else{
             return false;
         }
-
-        // Verifica si el monto excede al presupuesto total
-        if (monto > presupuestoTotal) {
-            System.out.println("El monto excede el presupuesto total.");
-            return false;
-        }
-
-        double presupuestoActual = cat.getPresupuesto();
-        double totalAsignado = this.categoriasGasto.values().stream()
-                .mapToDouble(CategoriaGasto::getPresupuesto)
-                .sum();
-
-        // Verifica si el monto, más lo ya asignado (excluyendo el presupuesto actual de la categoría), excede al presupuesto total
-        if ((totalAsignado - presupuestoActual + monto) > presupuestoTotal) {
-            System.out.println("El monto excede el presupuesto total disponible.");
-            return false;
-        }
-
-        // Asigna el nuevo presupuesto a la categoría de gasto
-        cat.setPresupuesto(monto);
-
-        // Restamos la diferencia entre el monto nuevo y el presupuesto actual del presupuesto total
-        presupuestoTotal -= (monto - presupuestoActual);
 
         return true;
     }
 
-    public void aumentarPresupuestoACategoriGasto(String nombre, double monto){
+    public boolean aumentarPresupuestoACategoriGasto(String nombre, double monto){
         CategoriaGasto cat = this.categoriasGasto.get(nombre);
 
-        cat.setPresupuesto(cat.getPresupuesto()+monto);
+        double montoNuevo = cat.getPresupuesto()+monto;
+
+        if(presupuestoTotal < monto){
+            return false;
+        }
+
+        cat.setPresupuesto(montoNuevo);
 
         // Restamos la diferencia entre el monto nuevo y el presupuesto actual del presupuesto total
         presupuestoTotal -= monto;
-
+        return true;
     }
 
     public boolean validarCategoria(String categoria) {
@@ -165,6 +153,18 @@ public class GestionFinanciera {
             return false;
         }
         return true;
+    }
+
+    public boolean existenTransaccionesGastos(){
+
+        for (Map.Entry<String, CategoriaGasto> entry : categoriasGasto.entrySet()) {
+
+            if(!entry.getValue().getTransacciones().isEmpty()){
+                return true;
+            }
+
+        }
+        return false;
     }
 
     public String mostrarCategorias(String tipo) {
@@ -239,17 +239,17 @@ public class GestionFinanciera {
     }
 
 
-    private void insertionSort(List<Transaccion> transacciones, boolean ascendente) {
+    private void insertionSort(List<Transaccion> transacciones, Comparator<Transaccion> comparator, boolean ascendente) {
         for (int i = 1; i < transacciones.size(); ++i) {
             Transaccion key = transacciones.get(i);
             int j = i - 1;
             if (ascendente) {
-                while (j >= 0 && transacciones.get(j).getMonto() > key.getMonto()) {
+                while (j >= 0 && comparator.compare(transacciones.get(j), key) > 0) {
                     transacciones.set(j + 1, transacciones.get(j));
                     j = j - 1;
                 }
             } else {
-                while (j >= 0 && transacciones.get(j).getMonto() < key.getMonto()) {
+                while (j >= 0 && comparator.compare(transacciones.get(j), key) < 0) {
                     transacciones.set(j + 1, transacciones.get(j));
                     j = j - 1;
                 }
@@ -258,21 +258,24 @@ public class GestionFinanciera {
         }
     }
 
-    public String ordenarTransacciones(String categoria, boolean ascendente) {
+
+    public String ordenarTransacciones(String categoria, boolean ascendente, Comparator<Transaccion> comparacion) {
         StringBuilder sb = new StringBuilder();
         CategoriaIngreso catIngreso = this.categoriasIngreso.get(categoria);
         CategoriaGasto catGasto = this.categoriasGasto.get(categoria);
 
         if (catIngreso != null) {
             List<Transaccion> transacciones = new ArrayList<>(catIngreso.getTransacciones());
-            insertionSort(transacciones, ascendente);
+            insertionSort(transacciones, comparacion ,ascendente);
             sb.append("Transacciones de la categoría de ingresos '" + categoria + "': \n");
-            transacciones.forEach(transaccion -> sb.append("Monto: " + transaccion.getMonto() + ", Descripción: " + transaccion.getDescripcion() + "\n"));
+            transacciones.forEach(transaccion -> sb.append("Id: "+ transaccion.getId() + ", Monto: " + transaccion.getMonto() + ", Impuesto: " + transaccion.getImpuesto() +
+                     ", Tasa Impuesto: " + transaccion.getTasaImpuesto() + ", Fecha: " + transaccion.getFecha() + ", Descripción: " + transaccion.getDescripcion() + "\n"));
         } else if (catGasto != null) {
             List<Transaccion> transacciones = new ArrayList<>(catGasto.getTransacciones());
-            insertionSort(transacciones, ascendente);
+            insertionSort(transacciones, comparacion ,ascendente);
             sb.append("Transacciones de la categoría de gastos '" + categoria + "': \n");
-            transacciones.forEach(transaccion -> sb.append("Monto: " + transaccion.getMonto() + ", Descripción: " + transaccion.getDescripcion() + "\n"));
+            transacciones.forEach(transaccion -> sb.append("Id: "+ transaccion.getId() + ", Monto: " + transaccion.getMonto() + ", Impuesto: " + transaccion.getImpuesto() +
+                    ", Tasa Impuesto: " + transaccion.getTasaImpuesto() + ", Fecha: " + transaccion.getFecha() + ", Descripción: " + transaccion.getDescripcion() + "\n"));
         } else {
             sb.append("La categoría '" + categoria + "' no existe.");
         }
