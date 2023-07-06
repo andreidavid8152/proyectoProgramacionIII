@@ -1,19 +1,26 @@
+import java.time.LocalDate;
 import java.util.*;
 
 public class GestionFinanciera {
     private Map<String, CategoriaIngreso> categoriasIngreso;
     private Map<String, CategoriaGasto> categoriasGasto;
+    private HashMap<Integer, PagoRecurrente> pagosRecurrentes;
     private double presupuestoTotal;
+    private double saldo;
 
     public GestionFinanciera() {
+        this.pagosRecurrentes = new HashMap<>();
         this.categoriasIngreso = new HashMap<>();
         this.categoriasGasto = new HashMap<>();
         this.presupuestoTotal = 0;
+        this.saldo = 500;
     }
 
     public boolean agregarIngreso(double monto, Date fecha, String descripcion, String categoria, double tasaImpuesto) {
         CategoriaIngreso cat = this.categoriasIngreso.get(categoria);
         Double impuesto = monto*(tasaImpuesto/100);
+
+        saldo += monto;
 
         if (cat == null) {
             System.out.println("La categoría de ingreso no existe.");
@@ -153,6 +160,66 @@ public class GestionFinanciera {
             return false;
         }
         return true;
+    }
+
+    public void registrarPagoRecurrente(double monto, String moneda, String frecuencia, LocalDate fechaInicio, boolean pagadoCompletamente, String descripcion) {
+
+        // Crear un nuevo PagoRecurrente
+        PagoRecurrente nuevoPago = new PagoRecurrente(monto, moneda, frecuencia, fechaInicio, descripcion);
+        ArrayList<Boolean> pagados = new ArrayList<>();
+
+        if(pagadoCompletamente){
+            nuevoPago.setSoloRegistro(true);
+            System.out.println(nuevoPago.getPagados().size());
+            Collections.fill(nuevoPago.getPagados(), true);
+        }
+
+
+        // Llenar el ArrayList con las fechas de pago
+        int frecuenciaInt = Integer.parseInt(frecuencia);
+        for (int i = 1; i <= frecuenciaInt; i++) {
+            // Agregar i meses a la fecha de inicio y guardarla en el ArrayList
+            nuevoPago.getFechasPago().add(fechaInicio.plusMonths(i).toString());
+        }
+
+        // Agregar el nuevo pago al HashMap de pagosRecurrentes
+        this.pagosRecurrentes.put(nuevoPago.getId(), nuevoPago);
+    }
+
+
+
+    public int buscarPagoRecurrente(int id){
+        // Buscar el PagoRecurrente en el HashMap usando el id
+        PagoRecurrente pago = pagosRecurrentes.get(id);
+
+        // Devolver el PagoRecurrente encontrado, o null si no se encontró ninguno
+
+        if(pago == null){
+            return 0; //No se encontro
+        } else if(pago.isSoloRegistro() || noEstaPagandose(pago.getPagados())){
+            System.out.println(pago.isSoloRegistro() + "||" + noEstaPagandose(pago.getPagados()));
+            return 1; //Dejar editar todo
+        } else{
+            return -1; //No dejar editar
+        }
+    }
+
+    private boolean noEstaPagandose(ArrayList<Boolean> pagados) {
+        for (boolean pagado : pagados) {
+            if (pagado) {
+                return false; // Se encontró un valor verdadero, por lo tanto, no contiene solo false
+            }
+        }
+        return true; // No se encontró ningún valor verdadero, contiene solo false
+    }
+
+
+
+    public void mostrarPagoRecurrente(){
+        // Imprimir cada entrada en pagosRecurrentes
+        for (Map.Entry<Integer, PagoRecurrente> entry : pagosRecurrentes.entrySet()) {
+            System.out.println(entry.getValue().toString());
+        }
     }
 
     public boolean existenTransaccionesGastos(){
@@ -299,4 +366,15 @@ public class GestionFinanciera {
         return presupuestoTotal;
     }
 
+    public double getSaldo() {
+        return saldo;
+    }
+
+    public void setSaldo(double saldo) {
+        this.saldo = saldo;
+    }
+
+    public HashMap<Integer, PagoRecurrente> getPagosRecurrentes() {
+        return pagosRecurrentes;
+    }
 }

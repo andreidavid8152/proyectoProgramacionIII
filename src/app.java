@@ -1,8 +1,11 @@
 import javax.swing.*;
 import java.awt.event.*;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+
+import datechooser.beans.DateChooserCombo;
 import org.jfree.chart.*;
 import org.jfree.data.category.*;
 
@@ -90,6 +93,33 @@ public class app extends JFrame {
     private JTextArea textAreaMostrarUsuarios;
     private JButton salirButton;
     private JLabel dateLabel;
+    private JLabel saldoLabel;
+    private JTabbedPane tabbedPane1;
+    private JTextField textFieldMontoRegistrarPago;
+    private JComboBox comboBoxMonedaRegistrar;
+    private JTextField textFieldFrecuenciaRegistrar;
+    private JTextArea textAreaDescripcionPagoRegistrar;
+    private JCheckBox siPagadoRegistrarCheckBox;
+    private JCheckBox noPagadoRegistrarCheckBox;
+    private JButton registrarButton;
+    private JTextField textFieldIdEditarPago;
+    private JTextField textFieldMontoEditarPago;
+    private JComboBox comboBoxMonedasEditar;
+    private JButton buscarButton1;
+    private JTextArea textAreaEditarPago;
+    private JButton editarButton;
+    private JTextField textFieldIdEliminarPago;
+    private JButton eliminarButton1;
+    private JTextField textFieldIdRealizarPago;
+    private JButton buscarButton2;
+    private JTextField textFieldMontoaPagar;
+    private JTextField textField1;
+    private JButton pagarButton;
+    private JComboBox comboBox3;
+    private JTextArea textAreaMostrarPagosRecurrentees;
+    private JTextField textFieldFrecuenciaMesesEditar;
+    private DateChooserCombo fechaRegistro;
+    private DateChooserCombo fechaEditarPago;
     private JButton quemarDatosButton;
     private JTextArea textAreaTransaccionesQuemado;
     private JComboBox comboBoxCategoriaEditarTransaccion;
@@ -368,8 +398,11 @@ public class app extends JFrame {
             @Override
             public void keyTyped(KeyEvent e) {
                 char c = e.getKeyChar();
-                if (!Character.isDigit(c)) {
-                    e.consume();
+                if (!((c >= '0') && (c <= '9') ||
+                        (c == KeyEvent.VK_BACK_SPACE) ||
+                        (c == KeyEvent.VK_DELETE) ||
+                        (c == '.' && textFieldMontoIngreso.getText().indexOf('.') == -1))) {
+                    e.consume();  // ignore the event
                 }
             }
         });
@@ -435,6 +468,71 @@ public class app extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 mostrarUsuarios();
+            }
+        });
+        registrarButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                registrarPagoRecurrente();
+            }
+        });
+        textFieldMontoRegistrarPago.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+                char c = e.getKeyChar();
+                if (!((c >= '0') && (c <= '9') ||
+                        (c == KeyEvent.VK_BACK_SPACE) ||
+                        (c == KeyEvent.VK_DELETE) ||
+                        (c == '.' && textFieldMontoIngreso.getText().indexOf('.') == -1))) {
+                    e.consume();  // ignore the event
+                }
+            }
+        });
+
+        textFieldFrecuenciaRegistrar.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+                char c = e.getKeyChar();
+                if (!Character.isDigit(c)) {
+                    e.consume();
+                }
+            }
+        });
+        buscarButton1.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                buscarPagoRecurrente();
+            }
+        });
+        editarButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                editarPagoRecurrente();
+            }
+        });
+        textFieldIdEditarPago.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+                char c = e.getKeyChar();
+                if (!Character.isDigit(c)) {
+                    e.consume();
+                }
+            }
+        });
+        siPagadoRegistrarCheckBox.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                if (siPagadoRegistrarCheckBox.isSelected()) {
+                    noPagadoRegistrarCheckBox.setSelected(false);
+                }
+            }
+        });
+        noPagadoRegistrarCheckBox.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                if (noPagadoRegistrarCheckBox.isSelected()) {
+                    siPagadoRegistrarCheckBox.setSelected(false);
+                }
             }
         });
     }
@@ -728,6 +826,8 @@ public class app extends JFrame {
         sistema.agregarGasto(13, fechaAleatoria, "pago 1", "GastoMarketing", 25);
         sistema.agregarGasto(25, fechaAleatoria, "pago 2", "GastoMarketing", 25);
         sistema.agregarGasto(35, fechaAleatoria, "pago 3", "GastoMarketing", 25);
+
+        saldoLabel.setText(String.valueOf(sistema.getSaldo()));
     }
 
 
@@ -749,6 +849,7 @@ public class app extends JFrame {
                             ingresoImpuestos.setText(String.valueOf(selectedCategoriaIngreso.getImpuestos()));
                             textFieldMontoIngreso.setText("");
                             textAreaDescripcionIngreso.setText("");
+                            saldoLabel.setText(String.valueOf(sistema.getSaldo()));
                             comboBoxIngreso.setSelectedIndex(0);
                             JOptionPane.showMessageDialog(null, "El ingreso ha sido agregado correctamente");
                         } else {
@@ -903,16 +1004,19 @@ public class app extends JFrame {
                             textFieldMontoEditarTransaccion.setEditable(false);
                             textAreaEditarDescripTransaccion.setEditable(false);
                             actualizarButton.setEnabled(false);
-                            JOptionPane.showMessageDialog(null, "Error. No existe ningun id asi.");
+                            JOptionPane.showMessageDialog(null, "Error. No existe ningun id asi en la categoria ingreso.");
                         }
                     }
 
                     //Ingreso
                     if (sistema.getCategoriasIngreso().get(textFieldEditarCategoria.getText()) != null) {
+                        double ingresoAnterior =  sistema.getCategoriasIngreso().get(textFieldEditarCategoria.getText()).getIngresos();
                         int respIngreso = sistema.getCategoriasIngreso().get(textFieldEditarCategoria.getText()).editarTransaccion(Integer.parseInt(idTransaccionLabel.getText()),
                                 Double.parseDouble(textFieldMontoEditarTransaccion.getText()),
                                 textAreaEditarDescripTransaccion.getText(), Double.parseDouble(textFieldTasaImpuestoDeduccion.getText()));
                         if (respIngreso == 1) {
+                            sistema.setSaldo((sistema.getSaldo()-ingresoAnterior)+sistema.getCategoriasIngreso().get(textFieldEditarCategoria.getText()).getIngresos());
+                            saldoLabel.setText(String.valueOf(sistema.getSaldo()));
                             JOptionPane.showMessageDialog(null, "Se ha modificado correctamente la transaccion");
                         } else {
                             textFieldMontoEditarTransaccion.setEditable(false);
@@ -947,7 +1051,16 @@ public class app extends JFrame {
                         JOptionPane.showMessageDialog(null, "Error. No existe ese id");
                     }
                 }else if (sistema.getCategoriasIngreso().get(nombreCategoriaEliminar.getText()) != null) {
+
+                    double ingresoEliminado = 0;
+                    Transaccion t = sistema.getCategoriasIngreso().get(nombreCategoriaEliminar.getText()).buscarTransaccion(Integer.parseInt(eliminarIdTransaccion.getText()));
+                    if(t != null){
+                        ingresoEliminado = t.getMonto();
+                    }
+
                     if (sistema.getCategoriasIngreso().get(nombreCategoriaEliminar.getText()).eliminarTransaccion(Integer.parseInt(eliminarIdTransaccion.getText()))) {
+                        sistema.setSaldo(sistema.getSaldo()-ingresoEliminado);
+                        saldoLabel.setText(String.valueOf(sistema.getSaldo()));
                         JOptionPane.showMessageDialog(null, "Transaccion eliminada correctamente");
                     } else {
                         JOptionPane.showMessageDialog(null, "Error. No existe ese id");
@@ -1159,12 +1272,97 @@ public class app extends JFrame {
         new LoginWindow(sistemaLogin, this);
     }
 
+    //PAGOS RECURRENTES
+
+    //Registrar
+    public void registrarPagoRecurrente(){
+        if(!textFieldMontoRegistrarPago.getText().isEmpty() && Double.parseDouble(
+                textFieldMontoRegistrarPago.getText()) > 0){
+
+            if(!textFieldFrecuenciaRegistrar.getText().isEmpty() && Double.parseDouble(
+                    textFieldFrecuenciaRegistrar.getText()) > 0){
+
+                if(!textAreaDescripcionPagoRegistrar.getText().isEmpty()){
+
+                    if (!siPagadoRegistrarCheckBox.isSelected() && !noPagadoRegistrarCheckBox.isSelected()) {
+                        JOptionPane.showMessageDialog(null, "Error. Debes seleccionar al menos un checkbox");
+                    } else {
+                        boolean pagado;
+
+                        Calendar calendar = fechaRegistro.getSelectedDate();
+
+                        // Convertir Calendar a LocalDate
+                        LocalDate fRegistro = calendar.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
+                        if(siPagadoRegistrarCheckBox.isSelected()){
+                            pagado = true;
+                        }else{
+                            pagado = false;
+                        }
+
+                        sistema.registrarPagoRecurrente(Double.parseDouble(textFieldMontoRegistrarPago.getText()),
+                                comboBoxMonedaRegistrar.getSelectedItem().toString(), textFieldFrecuenciaRegistrar.getText(), fRegistro, pagado, textAreaDescripcionPagoRegistrar.getText());
+                        sistema.mostrarPagoRecurrente();
+                    }
+
+                }else{
+                    JOptionPane.showMessageDialog(null, "Error. La descripcion no debe ser nula.");
+                }
+
+            }else{
+                JOptionPane.showMessageDialog(null, "Error. La frecuencia debe ser mayor a 0.");
+            }
+
+        }else{
+            JOptionPane.showMessageDialog(null, "Error. El monto debe ser mayor a 0.");
+        }
+    }
+
+    //Editar
+    public void buscarPagoRecurrente(){
+        if(!textFieldIdEditarPago.getText().isEmpty() && Integer.parseInt(textFieldIdEditarPago.getText()) > 0){
+
+            int resp = sistema.buscarPagoRecurrente(Integer.parseInt(textFieldIdEditarPago.getText()));
+            if(resp == 0){
+                camposEditarPagoRecurrente(false);
+                JOptionPane.showMessageDialog(null, "Error. No se encontró un PagoRecurrente con ese id.");
+            }else if(resp == 1){
+                camposEditarPagoRecurrente(true);
+
+            }else if(resp == -1){
+                camposEditarPagoRecurrente(false);
+                JOptionPane.showMessageDialog(null, "Error. No se puede editar un pago que ya se ha empezado a pagarse o que ya se ha pagado por completo.");
+            }
+
+        }else{
+            JOptionPane.showMessageDialog(null, "Error. El id no debe ser nulo y debe ser mayor a 0.");
+            camposEditarPagoRecurrente(false);
+        }
+    }
+
+    public void editarPagoRecurrente(){
+        PagoRecurrente pago = sistema.getPagosRecurrentes().get(Integer.parseInt(textFieldIdEditarPago.getText()));
+        textFieldMontoEditarPago.setText(String.valueOf(pago.getMonto()));
+        comboBoxMonedasEditar.setSelectedItem(pago.getMoneda());
+        textFieldFrecuenciaMesesEditar.setText(String.valueOf(pago.getFrecuencia()));
+        textAreaEditarPago.setText(String.valueOf(pago.getDescripcion()));
+    }
+
     //ACTIVACIONES Y ACTUALIZACIONES.-
     public void activarCamposCategorias(boolean bool) {
         textFieldNombreCategoria.setEditable(bool);
         crearCategoriaButton.setEnabled(bool);
         textFieldNombreCategoria.setText("");
     }
+
+    public void camposEditarPagoRecurrente(boolean bool){
+        textFieldMontoEditarPago.setEditable(bool);
+        comboBoxMonedasEditar.setEnabled(bool);
+        textFieldFrecuenciaMesesEditar.setEditable(bool);
+        textAreaEditarPago.setEnabled(bool);
+        editarButton.setEnabled(bool);
+    }
+
     public boolean verificarCampoTexto(String textField) {
         // Verifica si el campo de texto está vacío
         if (textField == null || textField.isEmpty()) {
