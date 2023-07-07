@@ -193,28 +193,36 @@ public class GestionFinanciera {
         return true;
     }
 
-    public void registrarPagoRecurrente(double monto, String moneda, String frecuencia, LocalDate fechaInicio, boolean pagadoCompletamente, String descripcion) {
-
+    public int registrarPagoRecurrente(double monto, String moneda, String frecuencia, LocalDate fechaInicio, boolean pagadoCompletamente, String descripcion) {
+        int sePago = 0;
         // Crear un nuevo PagoRecurrente
         PagoRecurrente nuevoPago = new PagoRecurrente(monto, moneda, frecuencia, fechaInicio, descripcion);
-        ArrayList<Boolean> pagados = new ArrayList<>();
-
-        if(pagadoCompletamente){
-            nuevoPago.setSoloRegistro(true);
-            System.out.println(nuevoPago.getPagados().size());
-            Collections.fill(nuevoPago.getPagados(), true);
-        }
-
 
         // Llenar el ArrayList con las fechas de pago
         int frecuenciaInt = Integer.parseInt(frecuencia);
-        for (int i = 1; i <= frecuenciaInt; i++) {
+        for (int i = 0; i < frecuenciaInt; i++) {
             // Agregar i meses a la fecha de inicio y guardarla en el ArrayList
             nuevoPago.getFechasPago().add(fechaInicio.plusMonths(i).toString());
         }
 
+        if(pagadoCompletamente){
+            nuevoPago.setSoloRegistro(true);
+            Collections.fill(nuevoPago.getPagados(), true);
+        } else if (fechaInicio.equals(LocalDate.now())) { // Verificar si la fecha de inicio es igual a la fecha actual
+            if (realizarPagos(monto)) {
+                nuevoPago.getPagados().set(0, true);
+                System.out.println("El PagoRecurrente con ID " + nuevoPago.getId() + " para el mes 1 ha sido pagado.");
+                sePago = 1;
+            } else {
+                System.out.println("No se puede pagar el PagoRecurrente con ID " + nuevoPago.getId() + " para el mes 1.");
+            }
+        } else{
+            sePago = -1;
+        }
+
         // Agregar el nuevo pago al HashMap de pagosRecurrentes
         this.pagosRecurrentes.put(nuevoPago.getId(), nuevoPago);
+        return sePago;
     }
 
 

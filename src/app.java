@@ -1323,8 +1323,14 @@ public class app extends JFrame {
                             pagado = false;
                         }
 
-                        sistema.registrarPagoRecurrente(Double.parseDouble(textFieldMontoRegistrarPago.getText()),
+                        JOptionPane.showMessageDialog(null, "Pago Recurrente agregado exitosamente");
+                        int resp = sistema.registrarPagoRecurrente(Double.parseDouble(textFieldMontoRegistrarPago.getText()),
                                 comboBoxMonedaRegistrar.getSelectedItem().toString(), textFieldFrecuenciaRegistrar.getText(), fRegistro, pagado, textAreaDescripcionPagoRegistrar.getText());
+                        if(resp == 1){
+                            JOptionPane.showMessageDialog(null, "El pago se ha realizado para el mes 1");
+                        }else if(resp == 0){
+                            JOptionPane.showMessageDialog(null, "El pago no se ha realizado para el mes 1 por falta de saldo");
+                        }
                         sistema.mostrarPagoRecurrente();
                     }
 
