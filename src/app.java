@@ -127,7 +127,7 @@ public class app extends JFrame {
     private JComboBox comboBoxCategoriaEditarTransaccion;
     private GestionFinanciera sistema = new GestionFinanciera();
     private SistemaLogin sistemaLogin;
-    private LocalDate dia;
+    public static LocalDate dia;
 
     public app(String user, SistemaLogin system) {
 
@@ -1317,21 +1317,28 @@ public class app extends JFrame {
                         // Convertir Calendar a LocalDate
                         LocalDate fRegistro = calendar.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 
-                        if(siPagadoRegistrarCheckBox.isSelected()){
-                            pagado = true;
+                        if(fRegistro.isAfter(dia) || fRegistro.equals(dia)){
+                            if(siPagadoRegistrarCheckBox.isSelected()){
+                                pagado = true;
+                            }else{
+                                pagado = false;
+                            }
+
+                            JOptionPane.showMessageDialog(null, "Pago Recurrente agregado exitosamente");
+                            int resp = sistema.registrarPagoRecurrente(Double.parseDouble(textFieldMontoRegistrarPago.getText()),
+                                    comboBoxMonedaRegistrar.getSelectedItem().toString(), textFieldFrecuenciaRegistrar.getText(), fRegistro, pagado, textAreaDescripcionPagoRegistrar.getText());
+                            System.out.println(resp);
+                            if(resp == 1){
+                                JOptionPane.showMessageDialog(null, "El pago se ha realizado para el mes 1");
+                            }else if(resp == 0){
+                                JOptionPane.showMessageDialog(null, "El pago no se ha realizado para el mes 1 por falta de saldo");
+                            }
+                            saldoLabel.setText(String.valueOf(sistema.getSaldo()));
+                            sistema.mostrarPagoRecurrente();
                         }else{
-                            pagado = false;
+                            JOptionPane.showMessageDialog(null, "Error. La fecha de pago no puede ser anterior al dia actual");
                         }
 
-                        JOptionPane.showMessageDialog(null, "Pago Recurrente agregado exitosamente");
-                        int resp = sistema.registrarPagoRecurrente(Double.parseDouble(textFieldMontoRegistrarPago.getText()),
-                                comboBoxMonedaRegistrar.getSelectedItem().toString(), textFieldFrecuenciaRegistrar.getText(), fRegistro, pagado, textAreaDescripcionPagoRegistrar.getText());
-                        if(resp == 1){
-                            JOptionPane.showMessageDialog(null, "El pago se ha realizado para el mes 1");
-                        }else if(resp == 0){
-                            JOptionPane.showMessageDialog(null, "El pago no se ha realizado para el mes 1 por falta de saldo");
-                        }
-                        sistema.mostrarPagoRecurrente();
                     }
 
                 }else{

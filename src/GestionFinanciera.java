@@ -1,6 +1,7 @@
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class GestionFinanciera {
     private Map<String, CategoriaIngreso> categoriasIngreso;
@@ -208,7 +209,7 @@ public class GestionFinanciera {
         if(pagadoCompletamente){
             nuevoPago.setSoloRegistro(true);
             Collections.fill(nuevoPago.getPagados(), true);
-        } else if (fechaInicio.equals(LocalDate.now())) { // Verificar si la fecha de inicio es igual a la fecha actual
+        } else if (fechaInicio.equals(app.dia)) { // Verificar si la fecha de inicio es igual a la fecha actual
             if (realizarPagos(monto)) {
                 nuevoPago.getPagados().set(0, true);
                 System.out.println("El PagoRecurrente con ID " + nuevoPago.getId() + " para el mes 1 ha sido pagado.");
@@ -255,36 +256,52 @@ public class GestionFinanciera {
     public String verificarPagosPendientes(LocalDate dia) {
         StringBuilder mensaje = new StringBuilder();
 
-        for (Map.Entry<Integer, PagoRecurrente> entrada : pagosRecurrentes.entrySet()) {
-            PagoRecurrente pagoActual = entrada.getValue();
-            int mesesTranscurridos = (int)ChronoUnit.MONTHS.between(pagoActual.getFechaInicio(), dia);
-            List<Integer> mesesNoPagados = new ArrayList<>();
-
-            for (int i = 0; i <= mesesTranscurridos && i < Integer.parseInt(pagoActual.getFrecuencia()); i++) {
-                if (!pagoActual.getPagados().get(i)) {
-                    double montoAPagar = pagoActual.getMonto();
-                    if (realizarPagos(montoAPagar)) {
-                        pagoActual.getPagados().set(i, true);
-                        mensaje.append("El PagoRecurrente con ID ").append(pagoActual.getId()).append(" para el mes ").append(i + 1).append(" ha sido pagado.\n");
-                    } else {
-                        mesesNoPagados.add(i + 1);
-                    }
+        // Crear una lista de pagos
+        List<Pago> pagosPendientes = new ArrayList<>();
+        for (PagoRecurrente pagoRecurrente : pagosRecurrentes.values()) {
+            for (int i = 0; i < Integer.parseInt(pagoRecurrente.getFrecuencia()); i++) {
+                if (!pagoRecurrente.getPagados().get(i) && dia.isAfter(LocalDate.parse(pagoRecurrente.getFechasPago().get(i)))) {
+                    pagosPendientes.add(new Pago(pagoRecurrente, i));
                 }
             }
-
-            if (!mesesNoPagados.isEmpty()) {
-                mensaje.append("El PagoRecurrente con ID ").append(pagoActual.getId()).append(" para los meses ");
-                for (int i = 0; i < mesesNoPagados.size(); i++) {
-                    if (i != 0) {
-                        mensaje.append(",");
-                    }
-                    mensaje.append(mesesNoPagados.get(i));
-                }
-                mensaje.append(" no ha sido pagado.\n");
-            }
-
-            System.out.println("PAGADOS: " + entrada.getValue().getPagados());
         }
+
+        // Ordenar los pagos por fecha
+        pagosPendientes.sort(Comparator.comparing(Pago::getFecha));
+
+        // Procesar los pagos en orden
+        for (Pago pago : pagosPendientes) {
+            if (dia.isBefore(pago.getFecha())) {
+                continue;
+            }
+
+            if (!pago.isPagado()) {
+                double montoAPagar = pago.getMonto();
+                if (realizarPagos(montoAPagar)) {
+                    pago.setPagado(true);
+                    mensaje.append("El PagoRecurrente con ID ").append(pago.getPagoRecurrente().getId())
+                            .append(" para el mes ").append(pago.getMes() + 1).append(" ha sido pagado.\n");
+                }
+            }
+            System.out.println("PAGADOS: " + pago.getPagoRecurrente().getPagados());
+
+        }
+
+        // Agrupar los pagos pendientes por ID de PagoRecurrente
+        Map<Integer, List<Pago>> pagosPendientesPorId = pagosPendientes.stream()
+                .filter(pago -> !pago.isPagado())
+                .collect(Collectors.groupingBy(pago -> pago.getPagoRecurrente().getId()));
+
+        // Construir el mensaje de salida para cada grupo
+        for (Map.Entry<Integer, List<Pago>> entry : pagosPendientesPorId.entrySet()) {
+            mensaje.append("El PagoRecurrente con ID ").append(entry.getKey()).append(" para los meses ");
+            List<String> meses = entry.getValue().stream()
+                    .map(pago -> Integer.toString(pago.getMes() + 1))
+                    .collect(Collectors.toList());
+            mensaje.append(String.join(",", meses));
+            mensaje.append(" no ha sido pagado.\n");
+        }
+
 
         return mensaje.toString();
     }
@@ -300,6 +317,11 @@ public class GestionFinanciera {
         saldo -= monto;
 
         return true;
+    }
+
+    public void actualizarPagoRecurrente(int id){
+        PagoRecurrente pago = pagosRecurrentes.get(id);
+        
     }
 
     public void mostrarPagoRecurrente(){
