@@ -1,4 +1,5 @@
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 public class GestionFinanciera {
@@ -43,6 +44,7 @@ public class GestionFinanciera {
         }
         Transaccion transaccion = new Transaccion(cat.actnextId(), monto, fecha, categoria, descripcion, impuesto, tasaImpuesto);
         if (!cat.agregarTransaccion(transaccion)) {
+            System.out.println(categoria);
             System.out.println("El gasto excede el presupuesto de la categoría.");
             return 0;
         }
@@ -123,6 +125,35 @@ public class GestionFinanciera {
             System.out.println("La categoría '" + categoria + "' no existe.");
             return -1;
         }
+    }
+
+    public boolean asignarPresupuestoGeneral(double presupuesto){
+        System.out.println("Saldo" + saldo);
+        System.out.println("P: " + presupuestoTotal);
+        System.out.println("PA: " + presupuesto);
+        if(presupuesto > saldo){
+            return false;
+        }
+
+        saldo = (saldo-presupuesto)+presupuestoTotal;
+        presupuestoTotal = presupuesto;
+        // Recorrer el HashMap utilizando un bucle for-each
+        for (Map.Entry<String, CategoriaGasto> entry : categoriasGasto.entrySet()) {
+            entry.getValue().setPresupuesto(0);
+            entry.getValue().setImpuestos(0);
+        }
+
+        return true;
+    }
+
+    public boolean aumentarPresupuestoGeneral(double presupuesto){
+
+        if(presupuesto > saldo){
+            return false;
+        }
+        presupuestoTotal += presupuesto;
+        saldo -= presupuesto;
+        return true;
     }
 
     public boolean asignarPresupuestoACategoriaGasto(String nombreCategoria, double monto) {
@@ -213,7 +244,55 @@ public class GestionFinanciera {
         return true; // No se encontró ningún valor verdadero, contiene solo false
     }
 
+    public String verificarPagosPendientes(LocalDate dia) {
+        StringBuilder mensaje = new StringBuilder();
 
+        for (Map.Entry<Integer, PagoRecurrente> entrada : pagosRecurrentes.entrySet()) {
+            PagoRecurrente pagoActual = entrada.getValue();
+            int mesesTranscurridos = (int)ChronoUnit.MONTHS.between(pagoActual.getFechaInicio(), dia);
+            List<Integer> mesesNoPagados = new ArrayList<>();
+
+            for (int i = 0; i <= mesesTranscurridos && i < Integer.parseInt(pagoActual.getFrecuencia()); i++) {
+                if (!pagoActual.getPagados().get(i)) {
+                    double montoAPagar = pagoActual.getMonto();
+                    if (realizarPagos(montoAPagar)) {
+                        pagoActual.getPagados().set(i, true);
+                        mensaje.append("El PagoRecurrente con ID ").append(pagoActual.getId()).append(" para el mes ").append(i + 1).append(" ha sido pagado.\n");
+                    } else {
+                        mesesNoPagados.add(i + 1);
+                    }
+                }
+            }
+
+            if (!mesesNoPagados.isEmpty()) {
+                mensaje.append("El PagoRecurrente con ID ").append(pagoActual.getId()).append(" para los meses ");
+                for (int i = 0; i < mesesNoPagados.size(); i++) {
+                    if (i != 0) {
+                        mensaje.append(",");
+                    }
+                    mensaje.append(mesesNoPagados.get(i));
+                }
+                mensaje.append(" no ha sido pagado.\n");
+            }
+
+            System.out.println("PAGADOS: " + entrada.getValue().getPagados());
+        }
+
+        return mensaje.toString();
+    }
+
+
+
+    public boolean realizarPagos(double monto){
+
+        if(monto > saldo){
+            return false;
+        }
+
+        saldo -= monto;
+
+        return true;
+    }
 
     public void mostrarPagoRecurrente(){
         // Imprimir cada entrada en pagosRecurrentes

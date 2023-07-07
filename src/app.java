@@ -120,6 +120,8 @@ public class app extends JFrame {
     private JTextField textFieldFrecuenciaMesesEditar;
     private DateChooserCombo fechaRegistro;
     private DateChooserCombo fechaEditarPago;
+    private JButton diaButton;
+    private JButton mesButton;
     private JButton quemarDatosButton;
     private JTextArea textAreaTransaccionesQuemado;
     private JComboBox comboBoxCategoriaEditarTransaccion;
@@ -130,8 +132,7 @@ public class app extends JFrame {
     public app(String user, SistemaLogin system) {
 
         dia = LocalDate.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        dateLabel.setText(dia.format(formatter));
+        dateLabel.setText(dia.toString());
 
         sistemaLogin = system;
         usuarioLabel.setText("Usuario: " + user);
@@ -535,6 +536,18 @@ public class app extends JFrame {
                 }
             }
         });
+        diaButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                aumentarDia();
+            }
+        });
+        mesButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                aumentarMes();
+            }
+        });
     }
 
     //CATEGORIAS.-
@@ -770,10 +783,10 @@ public class app extends JFrame {
         generarDatosButton.setEnabled(false);
     }
     public void generarPresupuestos() {
-        sistema.setPresupuestoTotal(1000);
-        sistema.asignarPresupuestoACategoriaGasto("DesarrolloSoftware", 200);
-        sistema.asignarPresupuestoACategoriaGasto("GastosOficina", 200);
-        sistema.asignarPresupuestoACategoriaGasto("GastoMarketing", 200);
+        sistema.asignarPresupuestoGeneral(300);
+        sistema.asignarPresupuestoACategoriaGasto("DesarrolloSoftware", 100);
+        sistema.asignarPresupuestoACategoriaGasto("GastosOficina", 100);
+        sistema.asignarPresupuestoACategoriaGasto("GastoMarketing", 100);
         labelPresupuestoTotal.setText(String.valueOf("Presupuesto Total: " + sistema.getPresupuestoTotal()));
     }
     public void generarGastoseIngresos() {
@@ -821,7 +834,7 @@ public class app extends JFrame {
 
         sistema.agregarGasto(31, fechaAleatoria, "pago 1", "GastosOficina", 25);
         sistema.agregarGasto(48, fechaAleatoria, "pago 2", "GastosOficina", 25);
-        sistema.agregarGasto(52, fechaAleatoria, "pago 3", "GastosOficina", 25);
+        sistema.agregarGasto(15, fechaAleatoria, "pago 3", "GastosOficina", 25);
 
         sistema.agregarGasto(13, fechaAleatoria, "pago 1", "GastoMarketing", 25);
         sistema.agregarGasto(25, fechaAleatoria, "pago 2", "GastoMarketing", 25);
@@ -1129,13 +1142,15 @@ public class app extends JFrame {
         if (!textFiedlPresupuestoTotal.getText().isEmpty() && !textFiedlPresupuestoTotal.getText().equals("0")) {
 
             if(!sistema.existenTransaccionesGastos()){
-                sistema.setPresupuestoTotal(Double.parseDouble(textFiedlPresupuestoTotal.getText()));
-                // Recorrer el HashMap utilizando un bucle for-each
-                for (Map.Entry<String, CategoriaGasto> entry : sistema.getCategoriasGasto().entrySet()) {
-                    entry.getValue().setPresupuesto(0);
-                    entry.getValue().setImpuestos(0);
+
+                if(sistema.asignarPresupuestoGeneral(Double.parseDouble(textFiedlPresupuestoTotal.getText()))){
+                    labelPresupuestoTotal.setText("Presupuesto Total: " + sistema.getPresupuestoTotal());
+                    saldoLabel.setText(String.valueOf(sistema.getSaldo()));
+                    JOptionPane.showMessageDialog(null, "Presupuesto asignado correctamente");
+                }else{
+                    JOptionPane.showMessageDialog(null, "Error. El presupuesto a asignar no se puede ser mayor al saldos");
                 }
-                labelPresupuestoTotal.setText("Presupuesto Total: " + sistema.getPresupuestoTotal());
+
             }else{
                 JOptionPane.showMessageDialog(null, "Error. El presupuesto no se puede setear ya que existen transacciones asignadas");
             }
@@ -1146,8 +1161,16 @@ public class app extends JFrame {
     }
     public void aumentarPresupuestoGeneral(){
         if (!textFiedlPresupuestoTotal.getText().isEmpty() && !textFiedlPresupuestoTotal.getText().equals("0")) {
-            sistema.setPresupuestoTotal(sistema.getPresupuestoTotal()+Double.parseDouble(textFiedlPresupuestoTotal.getText()));
-            labelPresupuestoTotal.setText("Presupuesto Total: " + sistema.getPresupuestoTotal());
+
+            if(sistema.aumentarPresupuestoGeneral(Double.parseDouble(textFiedlPresupuestoTotal.getText()))){
+                labelPresupuestoTotal.setText("Presupuesto Total: " + sistema.getPresupuestoTotal());
+                saldoLabel.setText(String.valueOf(sistema.getSaldo()));
+                JOptionPane.showMessageDialog(null, "Presupuesto asignado correctamente");
+            }else{
+                JOptionPane.showMessageDialog(null, "Error. Ya no hay mas saldo para asignar al presupuesto.");
+            }
+
+
         } else {
             JOptionPane.showMessageDialog(null, "Error. El monto total deber ser un entero positivo");
         }
@@ -1346,6 +1369,21 @@ public class app extends JFrame {
         comboBoxMonedasEditar.setSelectedItem(pago.getMoneda());
         textFieldFrecuenciaMesesEditar.setText(String.valueOf(pago.getFrecuencia()));
         textAreaEditarPago.setText(String.valueOf(pago.getDescripcion()));
+    }
+
+    //FECHA
+    public void aumentarDia(){
+        dia = dia.plusDays(1);
+        dateLabel.setText(dia.toString());
+        System.out.println(sistema.verificarPagosPendientes(dia));
+        saldoLabel.setText(String.valueOf(sistema.getSaldo()));
+    }
+
+    public void aumentarMes(){
+        dia = dia.plusMonths(1);
+        dateLabel.setText(dia.toString());
+        System.out.println(sistema.verificarPagosPendientes(dia));
+        saldoLabel.setText(String.valueOf(sistema.getSaldo()));
     }
 
     //ACTIVACIONES Y ACTUALIZACIONES.-
