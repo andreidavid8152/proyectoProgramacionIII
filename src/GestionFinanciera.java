@@ -209,8 +209,9 @@ public class GestionFinanciera {
         if(pagadoCompletamente){
             nuevoPago.setSoloRegistro(true);
             Collections.fill(nuevoPago.getPagados(), true);
+            sePago = -1;
         } else if (fechaInicio.equals(app.dia)) { // Verificar si la fecha de inicio es igual a la fecha actual
-            if (realizarPagos(monto)) {
+            if (realizarPagos(monto, nuevoPago.getMoneda())) {
                 nuevoPago.getPagados().set(0, true);
                 System.out.println("El PagoRecurrente con ID " + nuevoPago.getId() + " para el mes 1 ha sido pagado.");
                 sePago = 1;
@@ -244,7 +245,7 @@ public class GestionFinanciera {
         }
     }
 
-    private boolean noEstaPagandose(ArrayList<Boolean> pagados) {
+    public boolean noEstaPagandose(ArrayList<Boolean> pagados) {
         for (boolean pagado : pagados) {
             if (pagado) {
                 return false; // Se encontró un valor verdadero, por lo tanto, no contiene solo false
@@ -253,16 +254,41 @@ public class GestionFinanciera {
         return true; // No se encontró ningún valor verdadero, contiene solo false
     }
 
-    public String verificarPagosPendientes(LocalDate dia) {
+    public HashMap<Integer, PagoRecurrente> mostrarPagosCategorizados(boolean bool) {
+        HashMap<Integer, PagoRecurrente> pagosFiltrados = new HashMap<>();
+        for (Map.Entry<Integer, PagoRecurrente> entry : pagosRecurrentes.entrySet()) {
+            // Si el pago recurrente coincide con el estado de pago especificado
+            if (bool) {
+                if (entry.getValue().isPagadoCompletamente() || entry.getValue().isSoloRegistro()) {
+                    pagosFiltrados.put(entry.getKey(), entry.getValue());
+                }
+            } else {
+                if (!entry.getValue().isPagadoCompletamente() && !entry.getValue().isSoloRegistro()) {
+                    pagosFiltrados.put(entry.getKey(), entry.getValue());
+                }
+            }
+        }
+        return pagosFiltrados;
+    }
+
+
+
+    public String verificarPagosPendientes() {
         StringBuilder mensaje = new StringBuilder();
 
         // Crear una lista de pagos
         List<Pago> pagosPendientes = new ArrayList<>();
         for (PagoRecurrente pagoRecurrente : pagosRecurrentes.values()) {
             for (int i = 0; i < Integer.parseInt(pagoRecurrente.getFrecuencia()); i++) {
-                if (!pagoRecurrente.getPagados().get(i) && dia.isAfter(LocalDate.parse(pagoRecurrente.getFechasPago().get(i)))) {
+                // Cambio aquí
+                if (!pagoRecurrente.getPagados().get(i) && !app.dia.isBefore(LocalDate.parse(pagoRecurrente.getFechasPago().get(i)))) {
                     pagosPendientes.add(new Pago(pagoRecurrente, i));
                 }
+            }
+
+            // Verificar si todos los pagos han sido realizados
+            if (pagoRecurrente.getPagados().stream().allMatch(p -> p == true)) {
+                pagoRecurrente.setPagadoCompletamente(true);
             }
         }
 
@@ -271,13 +297,13 @@ public class GestionFinanciera {
 
         // Procesar los pagos en orden
         for (Pago pago : pagosPendientes) {
-            if (dia.isBefore(pago.getFecha())) {
+            if (app.dia.isBefore(pago.getFecha())) {
                 continue;
             }
 
             if (!pago.isPagado()) {
                 double montoAPagar = pago.getMonto();
-                if (realizarPagos(montoAPagar)) {
+                if (realizarPagos(montoAPagar, pago.getPagoRecurrente().getMoneda())) {
                     pago.setPagado(true);
                     mensaje.append("El PagoRecurrente con ID ").append(pago.getPagoRecurrente().getId())
                             .append(" para el mes ").append(pago.getMes() + 1).append(" ha sido pagado.\n");
@@ -308,7 +334,13 @@ public class GestionFinanciera {
 
 
 
-    public boolean realizarPagos(double monto){
+    public boolean realizarPagos(double monto, String moneda){
+
+        if (moneda.equals("EUR")) {
+            monto = monto * 1.18;  // monto en dólares
+        } else if (moneda.equals("GBP")) {
+            monto = monto * 1.33;  // monto en dólares
+        }
 
         if(monto > saldo){
             return false;
@@ -319,9 +351,43 @@ public class GestionFinanciera {
         return true;
     }
 
-    public void actualizarPagoRecurrente(int id){
+    public int actualizarPagoRecurrente(int id, double monto, String moneda, String frecuencia, LocalDate fechaInicio, String descripcion){
+        int sePago = 0;
+
         PagoRecurrente pago = pagosRecurrentes.get(id);
-        
+
+        pago.setMonto(monto);
+        pago.setMoneda(moneda);
+        pago.setFrecuencia(frecuencia);
+        pago.setFechaInicio(fechaInicio);
+        pago.setDescripcion(descripcion);
+
+        //nuevos meses
+        pago.getFechasPago().clear();
+        for (int i = 0; i < Integer.parseInt(frecuencia); i++) {
+            // Agregar i meses a la fecha de inicio y guardarla en el ArrayList
+            pago.getFechasPago().add(fechaInicio.plusMonths(i).toString());
+        }
+
+        if(pago.isSoloRegistro()){
+            pago.setPagados(new ArrayList<>(Collections.nCopies(Integer.parseInt(frecuencia), true)));
+            sePago = -1;
+        }else{
+            pago.setPagados(new ArrayList<>(Collections.nCopies(Integer.parseInt(frecuencia), false)));
+            sePago = -1;
+
+            if(pago.getFechaInicio().equals(app.dia) && realizarPagos(pago.getMonto(), pago.getMoneda())){
+                pago.getPagados().set(0, true);
+                sePago = 1;
+            }
+        }
+
+        return sePago;
+    }
+
+    public void eliminarPagoRecurrente(int id){
+        PagoRecurrente pago = pagosRecurrentes.get(id);
+
     }
 
     public void mostrarPagoRecurrente(){

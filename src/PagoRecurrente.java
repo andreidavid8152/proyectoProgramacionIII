@@ -89,20 +89,51 @@ public class PagoRecurrente {
         this.pagadoCompletamente = pagadoCompletamente;
     }
 
+    public static void setUltimoId(int ultimoId) {
+        PagoRecurrente.ultimoId = ultimoId;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public void setMonto(double monto) {
+        this.monto = monto;
+    }
+
+    public void setMoneda(String moneda) {
+        this.moneda = moneda;
+    }
+
+    public void setFrecuencia(String frecuencia) {
+        this.frecuencia = frecuencia;
+    }
+
+    public void setFechaInicio(LocalDate fechaInicio) {
+        this.fechaInicio = fechaInicio;
+    }
+
+    public void setDescripcion(String descripcion) {
+        this.descripcion = descripcion;
+    }
+
+    public void setFechasPago(ArrayList<String> fechasPago) {
+        this.fechasPago = fechasPago;
+    }
+
     @Override
     public String toString() {
         return "PagoRecurrente{" +
-                "id=" + id +
-                ", monto=" + monto +
-                ", moneda='" + moneda + '\'' +
-                ", frecuencia='" + frecuencia + '\'' +
-                ", fechaInicio=" + fechaInicio +
-                ", descripcion='" + descripcion + '\'' +
-                ", pagadoCompletamente=" + pagadoCompletamente +
-                ", soloRegistro=" + soloRegistro +
-                ", mesActual='" + mesActual + '\'' +
-                ", pagados=" + pagados +
-                ", fechasPago=" + fechasPago +
+                "id=" + id + '\n' +
+                ", monto=" + monto + '\n' +
+                ", moneda='" + moneda + '\n' +
+                ", frecuencia='" + frecuencia + '\n' +
+                ", fechaInicio=" + fechaInicio + '\n' +
+                ", descripcion='" + descripcion + '\n' +
+                ", pagadoCompletamente=" + pagadoCompletamente + '\n' +
+                ", soloRegistro=" + soloRegistro + '\n' +
+                ", fechasPago=" + fechasPago + '\n' +
+                ", pagados=" + pagados + '\n' +
                 '}';
     }
 

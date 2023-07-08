@@ -2,7 +2,6 @@ import javax.swing.*;
 import java.awt.event.*;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import datechooser.beans.DateChooserCombo;
@@ -110,11 +109,6 @@ public class app extends JFrame {
     private JButton editarButton;
     private JTextField textFieldIdEliminarPago;
     private JButton eliminarButton1;
-    private JTextField textFieldIdRealizarPago;
-    private JButton buscarButton2;
-    private JTextField textFieldMontoaPagar;
-    private JTextField textField1;
-    private JButton pagarButton;
     private JComboBox comboBox3;
     private JTextArea textAreaMostrarPagosRecurrentees;
     private JTextField textFieldFrecuenciaMesesEditar;
@@ -122,6 +116,9 @@ public class app extends JFrame {
     private DateChooserCombo fechaEditarPago;
     private JButton diaButton;
     private JButton mesButton;
+    private JButton MOSTRARButton;
+    private JComboBox comboBox1;
+    private JButton generarInformeButton;
     private JButton quemarDatosButton;
     private JTextArea textAreaTransaccionesQuemado;
     private JComboBox comboBoxCategoriaEditarTransaccion;
@@ -133,6 +130,8 @@ public class app extends JFrame {
 
         dia = LocalDate.now();
         dateLabel.setText(dia.toString());
+
+        saldoLabel.setText(String.valueOf(sistema.getSaldo()));
 
         sistemaLogin = system;
         usuarioLabel.setText("Usuario: " + user);
@@ -548,6 +547,24 @@ public class app extends JFrame {
                 aumentarMes();
             }
         });
+        eliminarButton1.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                eliminarPagoRecurrente();
+            }
+        });
+        MOSTRARButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                mostrarPagosRecurrentes();
+            }
+        });
+        generarInformeButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                generarInformePagos();
+            }
+        });
     }
 
     //CATEGORIAS.-
@@ -840,7 +857,6 @@ public class app extends JFrame {
         sistema.agregarGasto(25, fechaAleatoria, "pago 2", "GastoMarketing", 25);
         sistema.agregarGasto(35, fechaAleatoria, "pago 3", "GastoMarketing", 25);
 
-        saldoLabel.setText(String.valueOf(sistema.getSaldo()));
     }
 
 
@@ -1316,28 +1332,44 @@ public class app extends JFrame {
 
                         // Convertir Calendar a LocalDate
                         LocalDate fRegistro = calendar.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                        LocalDate fSoloRegistro = fRegistro.plusMonths(Integer.parseInt(textFieldFrecuenciaRegistrar.getText()));
+                        System.out.println(fSoloRegistro);
+                        if(siPagadoRegistrarCheckBox.isSelected()){
+                            pagado = true;
+                        }else{
+                            pagado = false;
+                        }
 
-                        if(fRegistro.isAfter(dia) || fRegistro.equals(dia)){
-                            if(siPagadoRegistrarCheckBox.isSelected()){
-                                pagado = true;
-                            }else{
-                                pagado = false;
-                            }
+                        String mensaje = null;
+                        int resp = -1;
 
-                            JOptionPane.showMessageDialog(null, "Pago Recurrente agregado exitosamente");
-                            int resp = sistema.registrarPagoRecurrente(Double.parseDouble(textFieldMontoRegistrarPago.getText()),
+                        System.out.println("P: " + pagado);
+                        if ((fRegistro.isAfter(dia) || fRegistro.equals(dia)) && !pagado) {
+                            mensaje = "Pago Recurrente agregado exitosamente";
+                            resp = sistema.registrarPagoRecurrente(Double.parseDouble(textFieldMontoRegistrarPago.getText()),
                                     comboBoxMonedaRegistrar.getSelectedItem().toString(), textFieldFrecuenciaRegistrar.getText(), fRegistro, pagado, textAreaDescripcionPagoRegistrar.getText());
+                        } else if ((fSoloRegistro.isBefore(dia) || fSoloRegistro.isEqual(dia)) && pagado) {
+                            System.out.println("pase");
+                            mensaje = "Pago Recurrente agregado exitosamente";
+                            resp = sistema.registrarPagoRecurrente(Double.parseDouble(textFieldMontoRegistrarPago.getText()),
+                                    comboBoxMonedaRegistrar.getSelectedItem().toString(), textFieldFrecuenciaRegistrar.getText(), fRegistro, pagado, textAreaDescripcionPagoRegistrar.getText());
+                        } else {
+                            mensaje = fSoloRegistro.isAfter(dia) && pagado? "Error. La ultima fecha de pago debe ser anterior o igual al dia actual" : "Error. La fecha de pago debe ser posterior o igual al dia actual";
+                        }
+
+                        if (mensaje != null) {
+                            JOptionPane.showMessageDialog(null, mensaje);
+                        }
+
+                        if (resp != -1) {
                             System.out.println(resp);
-                            if(resp == 1){
-                                JOptionPane.showMessageDialog(null, "El pago se ha realizado para el mes 1");
-                            }else if(resp == 0){
-                                JOptionPane.showMessageDialog(null, "El pago no se ha realizado para el mes 1 por falta de saldo");
-                            }
+                            mensaje = (resp == 1) ? "El pago se ha realizado para el mes 1" : "El pago no se ha realizado para el mes 1 por falta de saldo";
+                            JOptionPane.showMessageDialog(null, mensaje);
+
                             saldoLabel.setText(String.valueOf(sistema.getSaldo()));
                             sistema.mostrarPagoRecurrente();
-                        }else{
-                            JOptionPane.showMessageDialog(null, "Error. La fecha de pago no puede ser anterior al dia actual");
                         }
+
 
                     }
 
@@ -1364,7 +1396,12 @@ public class app extends JFrame {
                 JOptionPane.showMessageDialog(null, "Error. No se encontró un PagoRecurrente con ese id.");
             }else if(resp == 1){
                 camposEditarPagoRecurrente(true);
-
+                PagoRecurrente pago = sistema.getPagosRecurrentes().get(Integer.parseInt(textFieldIdEditarPago.getText()));
+                textFieldMontoEditarPago.setText(String.valueOf(pago.getMonto()));
+                comboBoxMonedasEditar.setSelectedItem(pago.getMoneda());
+                textFieldFrecuenciaMesesEditar.setText(String.valueOf(pago.getFrecuencia()));
+                textAreaEditarPago.setText(String.valueOf(pago.getDescripcion()));
+                sistema.mostrarPagoRecurrente();
             }else if(resp == -1){
                 camposEditarPagoRecurrente(false);
                 JOptionPane.showMessageDialog(null, "Error. No se puede editar un pago que ya se ha empezado a pagarse o que ya se ha pagado por completo.");
@@ -1377,25 +1414,168 @@ public class app extends JFrame {
     }
 
     public void editarPagoRecurrente(){
-        PagoRecurrente pago = sistema.getPagosRecurrentes().get(Integer.parseInt(textFieldIdEditarPago.getText()));
-        textFieldMontoEditarPago.setText(String.valueOf(pago.getMonto()));
-        comboBoxMonedasEditar.setSelectedItem(pago.getMoneda());
-        textFieldFrecuenciaMesesEditar.setText(String.valueOf(pago.getFrecuencia()));
-        textAreaEditarPago.setText(String.valueOf(pago.getDescripcion()));
+        if(!textFieldMontoEditarPago.getText().isEmpty() && Double.parseDouble(textFieldMontoEditarPago.getText()) > 0){
+
+            if(!textFieldFrecuenciaMesesEditar.getText().isEmpty() && Double.parseDouble(textFieldFrecuenciaMesesEditar.getText()) > 0){
+
+
+                if(!textAreaEditarPago.getText().isEmpty()){
+
+                    boolean pagado;
+
+                    Calendar calendar = fechaEditarPago.getSelectedDate();
+
+                    // Convertir Calendar a LocalDate
+                    LocalDate fRegistro = calendar.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                    LocalDate fSoloRegistro = fRegistro.plusMonths(Integer.parseInt(textFieldFrecuenciaMesesEditar.getText()));
+                    System.out.println(fSoloRegistro);
+                    if(sistema.getPagosRecurrentes().get(Integer.parseInt(textFieldIdEditarPago.getText())).isSoloRegistro()){
+                        pagado = true;
+                    }else{
+                        pagado = false;
+                    }
+
+                    String mensaje = null;
+                    int resp = -1;
+
+                    if ((fRegistro.isAfter(dia) || fRegistro.equals(dia)) && !pagado) {
+                        mensaje = "Pago recurrente editado exitosamente.";
+                        resp = sistema.actualizarPagoRecurrente(Integer.parseInt(textFieldIdEditarPago.getText()), Double.parseDouble(textFieldMontoEditarPago.getText()),
+                                comboBoxMonedasEditar.getSelectedItem().toString(), textFieldFrecuenciaMesesEditar.getText(), fRegistro, textAreaEditarPago.getText());
+                    } else if ((fSoloRegistro.isBefore(dia) || fSoloRegistro.isEqual(dia)) && pagado) {
+                        mensaje = "Pago recurrente editado exitosamente.";
+                        resp =  sistema.actualizarPagoRecurrente(Integer.parseInt(textFieldIdEditarPago.getText()), Double.parseDouble(textFieldMontoEditarPago.getText()),
+                                comboBoxMonedasEditar.getSelectedItem().toString(), textFieldFrecuenciaMesesEditar.getText(), fRegistro, textAreaEditarPago.getText());
+                    } else {
+                        mensaje = fSoloRegistro.isAfter(dia) && pagado? "Error. La ultima fecha de pago debe ser anterior o igual al dia actual" : "Error. La fecha de pago debe ser posterior o igual al dia actual";
+                    }
+
+                    if (mensaje != null) {
+                        JOptionPane.showMessageDialog(null, mensaje);
+                    }
+
+                    if (resp != -1) {
+                        System.out.println(resp);
+                        mensaje = (resp == 1) ? "El pago se ha realizado para el mes 1" : "El pago no se ha realizado para el mes 1 por falta de saldo";
+                        JOptionPane.showMessageDialog(null, mensaje);
+
+                        saldoLabel.setText(String.valueOf(sistema.getSaldo()));
+                        sistema.mostrarPagoRecurrente();
+                    }
+
+
+                }else{
+                    JOptionPane.showMessageDialog(null, "Error. La descripcion no puede estar vacia.");
+                }
+
+
+
+            }else{
+                JOptionPane.showMessageDialog(null, "Error. La frecuencia debe ser mayor a 0.");
+            }
+
+        }else{
+            JOptionPane.showMessageDialog(null, "Error. El monto debe ser mayor a 0.");
+        }
+
+    }
+
+    public void eliminarPagoRecurrente(){
+        if(!textFieldIdEliminarPago.getText().isEmpty() && Integer.parseInt(textFieldIdEliminarPago.getText()) > 0){
+            int resp = sistema.buscarPagoRecurrente(Integer.parseInt(textFieldIdEliminarPago.getText()));
+            if(resp == 0){
+                camposEditarPagoRecurrente(false);
+                JOptionPane.showMessageDialog(null, "Error. No se encontró un PagoRecurrente con ese id.");
+            }else if(resp == 1){
+                sistema.getPagosRecurrentes().remove(Integer.parseInt(textFieldIdEliminarPago.getText()));
+                JOptionPane.showMessageDialog(null, "Pago eliminado correctamente");
+                sistema.mostrarPagoRecurrente();
+            }else if(resp == -1){
+                camposEditarPagoRecurrente(false);
+                JOptionPane.showMessageDialog(null, "Error. No se puede eliminar un pago que ya se ha empezado a pagarse o que ya se ha pagado por completo.");
+            }
+        }else{
+            JOptionPane.showMessageDialog(null, "Error. El id debe ser mayor a 0.");
+        }
+    }
+
+    public void generarInformePagos(){
+        boolean pagados = false;
+
+        double montoTotal = 0;
+        int Usd = 0;
+        int Gbp = 0;
+        int Eur = 0;
+        int frecuencia = 0;
+
+        if(comboBox1.getSelectedItem().equals("Pagados")){
+            pagados = true;
+        }
+
+        for (PagoRecurrente pagoRecurrente :  sistema.mostrarPagosCategorizados(pagados).values()) {
+            montoTotal += pagoRecurrente.getMonto();
+            if(pagoRecurrente.getMoneda().equals("USD")){
+                Usd++;
+            }else if(pagoRecurrente.getMoneda().equals("EUR")){
+                Eur++;
+            }else{
+                Gbp++;
+            }
+            frecuencia += Integer.parseInt(pagoRecurrente.getFrecuencia());
+        }
+
+        if (frecuencia > 0 && sistema.mostrarPagosCategorizados(pagados).size() > 1){
+            frecuencia = frecuencia/2;
+        }
+
+        // Crear un conjunto de datos de categorías
+        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+        dataset.addValue(montoTotal, "Monto", "Monto Total");
+        dataset.addValue(Usd, "Moneda", "USD");
+        dataset.addValue(Eur, "Moneda", "EUR");
+        dataset.addValue(Gbp, "Moneda", "GBP");
+        dataset.addValue(frecuencia, "Frecuencia", "Frecuencia");
+
+        // Crear un gráfico de barras
+        JFreeChart chart = ChartFactory.createBarChart(
+                comboBox1.getSelectedItem().toString(),
+                "Datos",
+                "Cantidad",
+                dataset
+        );
+
+        // Mostrar el gráfico en un marco
+        ChartFrame frame = new ChartFrame("Informe " + comboBox1.getSelectedItem().toString(), chart);
+        frame.pack();
+        frame.setVisible(true);
+    }
+
+    public void mostrarPagosRecurrentes(){
+        String texto = "";
+        boolean pagados = false;
+        if(comboBox3.getSelectedItem().equals("Pagados")){
+            pagados = true;
+        }
+        System.out.println("Asd: " + pagados);
+        for (PagoRecurrente pagoRecurrente : sistema.mostrarPagosCategorizados(pagados).values()) {
+            texto += pagoRecurrente.toString() + '\n';
+        }
+
+        textAreaMostrarPagosRecurrentees.setText(texto);
     }
 
     //FECHA
     public void aumentarDia(){
         dia = dia.plusDays(1);
         dateLabel.setText(dia.toString());
-        System.out.println(sistema.verificarPagosPendientes(dia));
+        System.out.println(sistema.verificarPagosPendientes());
         saldoLabel.setText(String.valueOf(sistema.getSaldo()));
     }
 
     public void aumentarMes(){
         dia = dia.plusMonths(1);
         dateLabel.setText(dia.toString());
-        System.out.println(sistema.verificarPagosPendientes(dia));
+        System.out.println(sistema.verificarPagosPendientes());
         saldoLabel.setText(String.valueOf(sistema.getSaldo()));
     }
 
