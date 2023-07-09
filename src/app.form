@@ -1928,7 +1928,7 @@
                 <properties/>
                 <border type="none"/>
                 <children>
-                  <component id="ee82f" class="javax.swing.JComboBox" default-binding="true">
+                  <component id="ee82f" class="javax.swing.JComboBox" binding="estadoPagoMDP">
                     <constraints>
                       <grid row="1" column="0" row-span="1" col-span="3" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
                     </constraints>
@@ -1954,13 +1954,20 @@
                     <properties/>
                     <border type="none"/>
                     <children>
-                      <component id="71b83" class="javax.swing.JTextArea" binding="textArea2" default-binding="true">
+                      <scrollpane id="b0881">
                         <constraints/>
                         <properties/>
-                      </component>
+                        <border type="none"/>
+                        <children>
+                          <component id="c80a9" class="javax.swing.JTextArea" binding="textAreaMostrarDeudasPrestamos">
+                            <constraints/>
+                            <properties/>
+                          </component>
+                        </children>
+                      </scrollpane>
                     </children>
                   </scrollpane>
-                  <component id="cb041" class="javax.swing.JButton" default-binding="true">
+                  <component id="cb041" class="javax.swing.JButton" binding="mostrarPagoMFP">
                     <constraints>
                       <grid row="2" column="0" row-span="1" col-span="3" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                     </constraints>
@@ -1970,7 +1977,7 @@
                   </component>
                   <component id="e1603" class="javax.swing.JComboBox" binding="comboBoxCategoriaMDP">
                     <constraints>
-                      <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+                      <grid row="0" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
                     </constraints>
                     <properties/>
                   </component>

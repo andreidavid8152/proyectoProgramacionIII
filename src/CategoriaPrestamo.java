@@ -28,10 +28,6 @@ public class CategoriaPrestamo extends Finanzas{
                 }
             }
 
-            // Verificar si todos los pagos han sido realizados
-            if (pagoRecurrente.getPagados().stream().allMatch(p -> p == true)) {
-                pagoRecurrente.setPagadoCompletamente(true);
-            }
         }
 
         // Ordenar los pagos por fecha
@@ -49,6 +45,10 @@ public class CategoriaPrestamo extends Finanzas{
                     pago.setPagado(true);
                     mensaje.append("El prestamo de la categoria " + super.getNombre() +" con ID ").append(pago.getPagoRecurrente().getId())
                             .append(" para el mes ").append(pago.getMes() + 1).append(" ha sido pagado.\n");
+                }
+                // Verificar si todos los pagos han sido realizados
+                if (pago.getPagoRecurrente().getPagados().stream().allMatch(p -> p == true)) {
+                    pago.getPagoRecurrente().setPagadoCompletamente(true);
                 }
             }
             System.out.println("PAGADOS: " + pago.getPagoRecurrente().getPagados());

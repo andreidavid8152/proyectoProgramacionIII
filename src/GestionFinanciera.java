@@ -371,10 +371,6 @@ public class GestionFinanciera {
                 }
             }
 
-            // Verificar si todos los pagos han sido realizados
-            if (pagoRecurrente.getPagados().stream().allMatch(p -> p == true)) {
-                pagoRecurrente.setPagadoCompletamente(true);
-            }
         }
 
         // Ordenar los pagos por fecha
@@ -392,6 +388,10 @@ public class GestionFinanciera {
                     pago.setPagado(true);
                     mensaje.append("El PagoRecurrente con ID ").append(pago.getPagoRecurrente().getId())
                             .append(" para el mes ").append(pago.getMes() + 1).append(" ha sido pagado.\n");
+                }
+                // Verificar si todos los pagos han sido realizados
+                if (pago.getPagoRecurrente().getPagados().stream().allMatch(p -> p == true)) {
+                    pago.getPagoRecurrente().setPagadoCompletamente(true);
                 }
             }
             System.out.println("PAGADOS: " + pago.getPagoRecurrente().getPagados());
@@ -540,6 +540,37 @@ public class GestionFinanciera {
         }
 
         return text;
+    }
+
+    public String mostrarDeudasPrestamos(String categoria, Boolean bool){
+
+        String mensaje = "";
+        HashMap<Integer, PagoRecurrente> pagosFiltrados = new HashMap<>();
+        Finanzas pago;
+
+        if(categoriasDeudas.containsKey(categoria)){
+            pago = categoriasDeudas.get(categoria);
+        }else{
+            pago = categoriasPrestamos.get(categoria);
+        }
+
+        for (Map.Entry<Integer, PagoRecurrente> entry : pago.getPagosRecurrentes().entrySet()) {
+            if (bool) {
+                if (entry.getValue().isPagadoCompletamente() || entry.getValue().isSoloRegistro()) {
+                    pagosFiltrados.put(entry.getKey(), entry.getValue());
+                }
+            } else {
+                if (!entry.getValue().isPagadoCompletamente() && !entry.getValue().isSoloRegistro()) {
+                    pagosFiltrados.put(entry.getKey(), entry.getValue());
+                }
+            }
+        }
+
+        for (PagoRecurrente pagoRecurrente : pagosFiltrados.values()) {
+            mensaje += pagoRecurrente.toString() + '\n';
+        }
+
+        return mensaje;
     }
 
     public boolean esDeuda(String cat){

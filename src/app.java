@@ -119,7 +119,6 @@ public class app extends JFrame {
     private JButton MOSTRARButton;
     private JComboBox comboBox1;
     private JButton generarInformeButton;
-    private JTextArea textArea2;
     private JComboBox comboboxRegistrarPagoDeudasPr;
     private JComboBox comboBoxPrestamosInforme;
     private JButton generarInformeButtonPrestamos;
@@ -146,6 +145,9 @@ public class app extends JFrame {
     private JButton editarEDP;
     private JTextField idEEDP;
     private JButton eliminarEEDP;
+    private JTextArea textAreaMostrarDeudasPrestamos;
+    private JComboBox estadoPagoMDP;
+    private JButton mostrarPagoMFP;
     private JButton quemarDatosButton;
     private JTextArea textAreaTransaccionesQuemado;
     private JComboBox comboBoxCategoriaEditarTransaccion;
@@ -618,6 +620,24 @@ public class app extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 eliminarDeudaPrestamo();
+            }
+        });
+        mostrarPagoMFP.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                mostrarDeudasPrestamos();
+            }
+        });
+        generarInformeButtonPrestamos.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                generarInformePrestamos();
+            }
+        });
+        generarInformeButtonDeudas.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                generarInformeDeudas();
             }
         });
     }
@@ -1876,6 +1896,116 @@ public class app extends JFrame {
             }else{
                 JOptionPane.showMessageDialog(null, "Error. El id debe ser mayor a 0.");
             }
+        }else{
+            JOptionPane.showMessageDialog(null, "Error. Seleccione una categoria.");
+        }
+    }
+
+    public void mostrarDeudasPrestamos(){
+        if(comboBoxCategoriaMDP.getSelectedItem() != null){
+
+            boolean estadoPago = false;
+            String mensaje;
+            if(estadoPagoMDP.getSelectedItem().equals("Pagados")){
+                estadoPago = true;
+            }
+
+            mensaje = sistema.mostrarDeudasPrestamos(comboBoxCategoriaMDP.getSelectedItem().toString(), estadoPago);
+
+            if(mensaje.equals("")){
+                textAreaMostrarDeudasPrestamos.setText("No hay datos que mostrar");
+            }else{
+                textAreaMostrarDeudasPrestamos.setText(mensaje);
+            }
+
+
+
+        }else{
+            JOptionPane.showMessageDialog(null, "Error. Seleccione una categoria.");
+        }
+    }
+
+    public void generarInformePrestamos(){
+
+        double montoTotal = 0;
+        int cantidadPagos;
+        int pagosPagados = 0;
+        int noPagados = 0;
+
+        if(comboBoxPrestamosInforme.getSelectedItem() != null){
+            for (Map.Entry<Integer, PagoRecurrente> entry : sistema.getCategoriasPrestamos().get(comboBoxPrestamosInforme.getSelectedItem().toString()).getPagosRecurrentes().entrySet()) {
+                montoTotal += entry.getValue().getMonto();
+                if(entry.getValue().isSoloRegistro() || entry.getValue().isPagadoCompletamente()){
+                    pagosPagados++;
+                }else{
+                    noPagados++;
+                }
+            }
+
+            cantidadPagos = sistema.getCategoriasPrestamos().get(comboBoxPrestamosInforme.getSelectedItem().toString()).getPagosRecurrentes().size();
+
+            // Crear un conjunto de datos de categorías
+            DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+            dataset.addValue(montoTotal, "Monto", "Monto Total");
+            dataset.addValue(pagosPagados, "Estado Pago", "Pagados");
+            dataset.addValue(noPagados, "Estado Pago", "No Pagados");
+            dataset.addValue(cantidadPagos, "Numero Pagos", "Cantidad");
+
+            // Crear un gráfico de barras
+            JFreeChart chart = ChartFactory.createBarChart(
+                    comboBoxPrestamosInforme.getSelectedItem().toString(),
+                    "Datos",
+                    "Cantidad",
+                    dataset
+            );
+
+            // Mostrar el gráfico en un marco
+            ChartFrame frame = new ChartFrame("Informe " + comboBoxPrestamosInforme.getSelectedItem().toString(), chart);
+            frame.pack();
+            frame.setVisible(true);
+        }else{
+            JOptionPane.showMessageDialog(null, "Error. Seleccione una categoria.");
+        }
+
+    }
+
+    public void generarInformeDeudas(){
+        double montoTotal = 0;
+        int cantidadPagos;
+        int pagosPagados = 0;
+        int noPagados = 0;
+
+        if(comboBoxDeudasInforme.getSelectedItem() != null){
+            for (Map.Entry<Integer, PagoRecurrente> entry : sistema.getCategoriasDeudas().get(comboBoxDeudasInforme.getSelectedItem().toString()).getPagosRecurrentes().entrySet()) {
+                montoTotal += entry.getValue().getMonto();
+                if(entry.getValue().isSoloRegistro() || entry.getValue().isPagadoCompletamente()){
+                    pagosPagados++;
+                }else{
+                    noPagados++;
+                }
+            }
+
+            cantidadPagos = sistema.getCategoriasDeudas().get(comboBoxDeudasInforme.getSelectedItem().toString()).getPagosRecurrentes().size();
+
+            // Crear un conjunto de datos de categorías
+            DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+            dataset.addValue(montoTotal, "Monto", "Monto Total");
+            dataset.addValue(pagosPagados, "Estado Pago", "Pagados");
+            dataset.addValue(noPagados, "Estado Pago", "No Pagados");
+            dataset.addValue(cantidadPagos, "Numero Pagos", "Cantidad");
+
+            // Crear un gráfico de barras
+            JFreeChart chart = ChartFactory.createBarChart(
+                    comboBoxDeudasInforme.getSelectedItem().toString(),
+                    "Datos",
+                    "Cantidad",
+                    dataset
+            );
+
+            // Mostrar el gráfico en un marco
+            ChartFrame frame = new ChartFrame("Informe " + comboBoxDeudasInforme.getSelectedItem().toString(), chart);
+            frame.pack();
+            frame.setVisible(true);
         }else{
             JOptionPane.showMessageDialog(null, "Error. Seleccione una categoria.");
         }
