@@ -4,7 +4,6 @@ import java.util.Collections;
 import java.util.Date;
 
 public class PagoRecurrente {
-    private static int ultimoId = 0;
     private int id;
     private double monto;
     private String moneda;
@@ -17,10 +16,10 @@ public class PagoRecurrente {
     private ArrayList<Boolean> pagados; //arreglo de meses pagados siempre empieza en false
     private ArrayList<String> fechasPago; //fechas de pago proxximas a la fecha de inicio siempre la primera fecha de pago es el sigueitne mes de la fecha de inicio
 
-    public PagoRecurrente(double monto, String moneda, String frecuencia, LocalDate fechaInicio, String descripcion){
+    public PagoRecurrente(double monto, String moneda, String frecuencia, LocalDate fechaInicio, String descripcion, int id){
         this.pagados = new ArrayList<>(Collections.nCopies(Integer.parseInt(frecuencia), false));
         this.fechasPago = new ArrayList<>(Integer.parseInt(frecuencia));
-        this.id = ++ultimoId;
+        this.id = id;
         this.monto = monto;
         this.moneda = moneda;
         this.frecuencia = frecuencia;
@@ -87,10 +86,6 @@ public class PagoRecurrente {
 
     public void setPagadoCompletamente(boolean pagadoCompletamente) {
         this.pagadoCompletamente = pagadoCompletamente;
-    }
-
-    public static void setUltimoId(int ultimoId) {
-        PagoRecurrente.ultimoId = ultimoId;
     }
 
     public void setId(int id) {

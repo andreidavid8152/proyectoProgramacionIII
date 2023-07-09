@@ -8,10 +8,14 @@ public class GestionFinanciera {
     private HashMap<Integer, PagoRecurrente> pagosRecurrentes;
     private HashMap<String, CategoriaPrestamo> categoriasPrestamos;
     private HashMap<String, CategoriaDeuda> categoriasDeudas;
+
+    private int numPagos;
+
     private double presupuestoTotal;
     public static double saldo;
 
     public GestionFinanciera() {
+        numPagos = 1;
         this.pagosRecurrentes = new HashMap<>();
         this.categoriasIngreso = new HashMap<>();
         this.categoriasGasto = new HashMap<>();
@@ -216,7 +220,9 @@ public class GestionFinanciera {
     public int registrarPagoRecurrente(double monto, String moneda, String frecuencia, LocalDate fechaInicio, boolean pagadoCompletamente, String descripcion) {
         int sePago = 0;
         // Crear un nuevo PagoRecurrente
-        PagoRecurrente nuevoPago = new PagoRecurrente(monto, moneda, frecuencia, fechaInicio, descripcion);
+        PagoRecurrente nuevoPago = new PagoRecurrente(monto, moneda, frecuencia, fechaInicio, descripcion, numPagos);
+
+        numPagos++;
 
         // Llenar el ArrayList con las fechas de pago
         int frecuenciaInt = Integer.parseInt(frecuencia);

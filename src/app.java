@@ -1734,7 +1734,7 @@ public class app extends JFrame {
 
         if(comboBoxCategoriaEDP.getSelectedItem() != null){
             String tipo;
-            if(sistema.esDeuda(comboboxRegistrarPagoDeudasPr.getSelectedItem().toString())){
+            if(sistema.esDeuda(comboBoxCategoriaEDP.getSelectedItem().toString())){
                 tipo = "Deuda";
             }else{
                 tipo = "Prestamo";
@@ -1747,6 +1747,7 @@ public class app extends JFrame {
                 }else if(resp == 1){
                     camposEditarDeudaPrestamo(true);
                     PagoRecurrente pago;
+                    System.out.println("HOLA: " + tipo);
                     if (tipo.equals("Deuda")){
                         pago = sistema.getCategoriasDeudas().get(comboBoxCategoriaEDP.getSelectedItem().toString()).getPagosRecurrentes().get(Integer.parseInt(idEDP.getText()));
                     }else{
@@ -1854,15 +1855,6 @@ public class app extends JFrame {
     }
 
     public void eliminarDeudaPrestamo(){
-        String tipo;
-        PagoRecurrente pago;
-
-        if(sistema.esDeuda(comboBoxDEDP.getSelectedItem().toString())){
-            tipo = "Deuda";
-        }else{
-            tipo = "Prestamo";
-        }
-
         if(comboBoxDEDP.getSelectedItem() != null){
 
             if(!idEEDP.getText().isEmpty() && Integer.parseInt(idEEDP.getText()) > 0){

@@ -4,11 +4,13 @@ import java.util.stream.Collectors;
 
 public class Finanzas {
     private String nombre;
+    private int numPagos;
     private HashMap<Integer, PagoRecurrente> pagosRecurrentes;
 
     public Finanzas(String nombre){
         this.pagosRecurrentes = new HashMap<>();
         this.nombre = nombre;
+        numPagos = 1;
     }
 
     public String getNombre() {
@@ -18,7 +20,9 @@ public class Finanzas {
     public int registrarPagoRecurrente(double monto, String moneda, String frecuencia, LocalDate fechaInicio, boolean pagadoCompletamente, String descripcion) {
         int sePago = 0;
         // Crear un nuevo PagoRecurrente
-        PagoRecurrente nuevoPago = new PagoRecurrente(monto, moneda, frecuencia, fechaInicio, descripcion);
+        PagoRecurrente nuevoPago = new PagoRecurrente(monto, moneda, frecuencia, fechaInicio, descripcion, numPagos);
+
+        numPagos++;
 
         // Llenar el ArrayList con las fechas de pago
         int frecuenciaInt = Integer.parseInt(frecuencia);
