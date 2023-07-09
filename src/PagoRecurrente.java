@@ -12,7 +12,6 @@ public class PagoRecurrente {
     private String descripcion;
     private boolean pagadoCompletamente; //sirve para saber si un pago se lo ha realizado completamente
     private boolean soloRegistro; //sirve para saber si un pago es un pago solo de registro
-    private int mesActual; //sirve para saber en que mes estamos
     private ArrayList<Boolean> pagados; //arreglo de meses pagados siempre empieza en false
     private ArrayList<String> fechasPago; //fechas de pago proxximas a la fecha de inicio siempre la primera fecha de pago es el sigueitne mes de la fecha de inicio
 
@@ -24,7 +23,6 @@ public class PagoRecurrente {
         this.moneda = moneda;
         this.frecuencia = frecuencia;
         this.fechaInicio = fechaInicio;
-        mesActual = 0;
         this.descripcion = descripcion;
     }
 
@@ -54,14 +52,6 @@ public class PagoRecurrente {
 
     public boolean isPagadoCompletamente() {
         return pagadoCompletamente;
-    }
-
-    public int getMesActual() {
-        return mesActual;
-    }
-
-    public void setMesActual(int mesActual) {
-        this.mesActual = mesActual;
     }
 
     public ArrayList<String> getFechasPago() {
