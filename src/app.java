@@ -119,6 +119,33 @@ public class app extends JFrame {
     private JButton MOSTRARButton;
     private JComboBox comboBox1;
     private JButton generarInformeButton;
+    private JTextArea textArea2;
+    private JComboBox comboboxRegistrarPagoDeudasPr;
+    private JComboBox comboBoxPrestamosInforme;
+    private JButton generarInformeButtonPrestamos;
+    private JComboBox comboBoxDeudasInforme;
+    private JButton generarInformeButtonDeudas;
+    private JTextField montoRDP;
+    private JComboBox monedaRDP;
+    private JTextField plazoRDP;
+    private DateChooserCombo fechaRDP;
+    private JTextArea descripcionRDP;
+    private JCheckBox registroRDP;
+    private JCheckBox noRDP;
+    private JButton registrarRDP;
+    private JComboBox comboBoxCategoriaEDP;
+    private JComboBox comboBoxDEDP;
+    private JComboBox comboBoxCategoriaMDP;
+    private JTextField idEDP;
+    private JButton buscarEDP;
+    private JTextField montoEDP;
+    private JComboBox monedaEDP;
+    private DateChooserCombo fechaEDP;
+    private JTextArea descripcionEDP;
+    private JTextField plazosEDP;
+    private JButton editarEDP;
+    private JTextField idEEDP;
+    private JButton eliminarEEDP;
     private JButton quemarDatosButton;
     private JTextArea textAreaTransaccionesQuemado;
     private JComboBox comboBoxCategoriaEditarTransaccion;
@@ -174,7 +201,11 @@ public class app extends JFrame {
                     activarCamposCategorias(true);
                 } else if (comboBoxTipoCategoria.getSelectedItem().equals("Gasto")) {
                     activarCamposCategorias(true);
-                } else {
+                }else if(comboBoxTipoCategoria.getSelectedItem().equals("Prestamo")){
+                    activarCamposCategorias(true);
+                }else if(comboBoxTipoCategoria.getSelectedItem().equals("Deuda")){
+                    activarCamposCategorias(true);
+                }else {
                     activarCamposCategorias(false);
                 }
             }
@@ -565,6 +596,30 @@ public class app extends JFrame {
                 generarInformePagos();
             }
         });
+        registrarRDP.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                registrarPagoDeudasPrestamos();
+            }
+        });
+        buscarEDP.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                buscarPagoDeudasPrestamos();
+            }
+        });
+        editarEDP.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                actualizarDatosPrestamoDeuda();
+            }
+        });
+        eliminarEEDP.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                eliminarDeudaPrestamo();
+            }
+        });
     }
 
     //CATEGORIAS.-
@@ -581,10 +636,26 @@ public class app extends JFrame {
                 } else {
                     JOptionPane.showMessageDialog(null, "Error. La categoria ya existe");
                 }
-            } else {
+            } else if(comboBoxTipoCategoria.getSelectedItem().equals("Gasto")){
                 if (sistema.crearCategoriaGasto(nombreCategoria, 0)) {
                     actualizarComboBoxes();
                     JOptionPane.showMessageDialog(null, "Categoria gasto agregada correctamente.");
+                    activarCamposCategorias(true);
+                } else {
+                    JOptionPane.showMessageDialog(null, "Error. La categoria ya existe");
+                }
+            } else if(comboBoxTipoCategoria.getSelectedItem().equals("Prestamo")){
+                if (sistema.crearCategoriaPrestamo(nombreCategoria)) {
+                    actualizarComboBoxes();
+                    JOptionPane.showMessageDialog(null, "Categoria Prestamo agregada correctamente.");
+                    activarCamposCategorias(true);
+                } else {
+                    JOptionPane.showMessageDialog(null, "Error. La categoria ya existe");
+                }
+            } else{
+                if (sistema.crearCategoriaDeuda(nombreCategoria)) {
+                    actualizarComboBoxes();
+                    JOptionPane.showMessageDialog(null, "Categoria Deuda agregada correctamente.");
                     activarCamposCategorias(true);
                 } else {
                     JOptionPane.showMessageDialog(null, "Error. La categoria ya existe");
@@ -1487,7 +1558,7 @@ public class app extends JFrame {
                 camposEditarPagoRecurrente(false);
                 JOptionPane.showMessageDialog(null, "Error. No se encontró un PagoRecurrente con ese id.");
             }else if(resp == 1){
-                sistema.getPagosRecurrentes().remove(Integer.parseInt(textFieldIdEliminarPago.getText()));
+                sistema.eliminarPagoRecurrente(Integer.parseInt(textFieldIdEliminarPago.getText()));
                 JOptionPane.showMessageDialog(null, "Pago eliminado correctamente");
                 sistema.mostrarPagoRecurrente();
             }else if(resp == -1){
@@ -1564,11 +1635,276 @@ public class app extends JFrame {
         textAreaMostrarPagosRecurrentees.setText(texto);
     }
 
+    public void registrarPagoDeudasPrestamos(){
+
+        String tipo;
+
+        if(comboboxRegistrarPagoDeudasPr.getSelectedItem() != null){
+
+            if(sistema.esDeuda(comboboxRegistrarPagoDeudasPr.getSelectedItem().toString())){
+                tipo = "Deuda";
+            }else{
+                tipo = "Prestamo";
+            }
+
+
+            if(!montoRDP.getText().isEmpty() && Double.parseDouble(
+                    montoRDP.getText()) > 0){
+
+                if(!plazoRDP.getText().isEmpty() && Double.parseDouble(
+                        plazoRDP.getText()) > 0){
+
+                    if(tipo.equals("Prestamo") &&  Integer.parseInt(plazoRDP.getText()) < 3){
+                        JOptionPane.showMessageDialog(null, "Error. Debes seleccionar al menos un plazo de 3 meses");
+                        return;
+                    }
+
+                    if(!descripcionRDP.getText().isEmpty()){
+
+                        if (!registroRDP.isSelected() && !noRDP.isSelected()) {
+                            JOptionPane.showMessageDialog(null, "Error. Debes seleccionar al menos un checkbox");
+                        } else {
+                            boolean pagado;
+
+                            Calendar calendar = fechaRDP.getSelectedDate();
+
+                            // Convertir Calendar a LocalDate
+                            LocalDate fRegistro = calendar.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                            LocalDate fSoloRegistro = fRegistro.plusMonths(Integer.parseInt(plazoRDP.getText()));
+                            System.out.println(fSoloRegistro);
+                            if(registroRDP.isSelected()){
+                                pagado = true;
+                            }else{
+                                pagado = false;
+                            }
+
+                            String mensaje = null;
+                            int resp = -1;
+
+                            System.out.println("P: " + pagado);
+                            if ((fRegistro.isAfter(dia) || fRegistro.equals(dia)) && !pagado) {
+                                mensaje = tipo + " agregado exitosamente";
+                                resp = sistema.registrarDeudaOPrestamo(Double.parseDouble(montoRDP.getText()),
+                                        comboBoxMonedaRegistrar.getSelectedItem().toString(), plazoRDP.getText(), fRegistro, pagado, descripcionRDP.getText(), comboboxRegistrarPagoDeudasPr.getSelectedItem().toString());
+                            } else if ((fSoloRegistro.isBefore(dia) || fSoloRegistro.isEqual(dia)) && pagado) {
+                                System.out.println("pase");
+                                mensaje = tipo + " agregado exitosamente";
+                                resp = sistema.registrarDeudaOPrestamo(Double.parseDouble(montoRDP.getText()),
+                                        comboBoxMonedaRegistrar.getSelectedItem().toString(), plazoRDP.getText(), fRegistro, pagado, descripcionRDP.getText(), comboboxRegistrarPagoDeudasPr.getSelectedItem().toString());
+                            } else {
+                                mensaje = fSoloRegistro.isAfter(dia) && pagado? "Error. La ultima fecha de pago debe ser anterior o igual al dia actual" : "Error. La fecha de pago debe ser posterior o igual al dia actual";
+                            }
+
+                            if (mensaje != null) {
+                                JOptionPane.showMessageDialog(null, mensaje);
+                            }
+
+                            if (resp != -1) {
+                                System.out.println(resp);
+                                mensaje = (resp == 1) ? "El pago se ha realizado para el mes 1" : "El pago no se ha realizado para el mes 1 por falta de saldo";
+                                JOptionPane.showMessageDialog(null, mensaje);
+
+                                saldoLabel.setText(String.valueOf(sistema.getSaldo()));
+                                sistema.mostrarPagoRecurrente();
+                            }
+
+
+                        }
+
+                    }else{
+                        JOptionPane.showMessageDialog(null, "Error. La descripcion no debe ser nula.");
+                    }
+
+                }else{
+                    JOptionPane.showMessageDialog(null, "Error. La frecuencia debe ser mayor a 0.");
+                }
+
+            }else{
+                JOptionPane.showMessageDialog(null, "Error. El monto debe ser mayor a 0.");
+            }
+
+        }else{
+            JOptionPane.showMessageDialog(null, "Error. Seleccione una categoria");
+        }
+
+
+    }
+
+    public void buscarPagoDeudasPrestamos(){
+
+        if(comboBoxCategoriaEDP.getSelectedItem() != null){
+            String tipo;
+            if(sistema.esDeuda(comboboxRegistrarPagoDeudasPr.getSelectedItem().toString())){
+                tipo = "Deuda";
+            }else{
+                tipo = "Prestamo";
+            }
+            if(!idEDP.getText().isEmpty() && Integer.parseInt(idEDP.getText()) > 0){
+                int resp = sistema.buscarPrestamoODeuda(Integer.parseInt(idEDP.getText()), comboBoxCategoriaEDP.getSelectedItem().toString());
+                if(resp == 0){
+                    camposEditarDeudaPrestamo(false);
+                    JOptionPane.showMessageDialog(null, "Error. No se encontró ninguna obligacion financiera con ese id.");
+                }else if(resp == 1){
+                    camposEditarDeudaPrestamo(true);
+                    PagoRecurrente pago;
+                    if (tipo.equals("Deuda")){
+                        pago = sistema.getCategoriasDeudas().get(comboBoxCategoriaEDP.getSelectedItem().toString()).getPagosRecurrentes().get(Integer.parseInt(idEDP.getText()));
+                    }else{
+                        pago = sistema.getCategoriasPrestamos().get(comboBoxCategoriaEDP.getSelectedItem().toString()).getPagosRecurrentes().get(Integer.parseInt(idEDP.getText()));
+                    }
+
+                    montoEDP.setText(String.valueOf(pago.getMonto()));
+                    monedaEDP.setSelectedItem(pago.getMoneda());
+                    plazosEDP.setText(String.valueOf(pago.getFrecuencia()));
+                    descripcionEDP.setText(String.valueOf(pago.getDescripcion()));
+                    sistema.mostrarPagoRecurrente();
+                }else if(resp == -1){
+                    camposEditarDeudaPrestamo(false);
+                    JOptionPane.showMessageDialog(null, "Error. No se puede editar ninguna obligacion financiera que ya se ha empezado a pagarse o que ya se ha pagado por completo.");
+                }else{
+                    camposEditarDeudaPrestamo(false);
+                    JOptionPane.showMessageDialog(null, "Error. Obligacion financiera no encontrada con ese id.");
+                }
+            }else{
+                JOptionPane.showMessageDialog(null, "Error. Ingrese un id mayor a 0.");
+            }
+        }else{
+            JOptionPane.showMessageDialog(null, "Error. Seleccione una categoria");
+        }
+    }
+
+    public void actualizarDatosPrestamoDeuda(){
+        String tipo;
+        PagoRecurrente pago;
+
+        if(sistema.esDeuda(comboBoxCategoriaEDP.getSelectedItem().toString())){
+            tipo = "Deuda";
+        }else{
+            tipo = "Prestamo";
+        }
+
+        if (tipo.equals("Deuda")){
+            pago = sistema.getCategoriasDeudas().get(comboBoxCategoriaEDP.getSelectedItem().toString()).getPagosRecurrentes().get(Integer.parseInt(idEDP.getText()));
+        }else{
+            pago = sistema.getCategoriasPrestamos().get(comboBoxCategoriaEDP.getSelectedItem().toString()).getPagosRecurrentes().get(Integer.parseInt(idEDP.getText()));
+        }
+
+        if(!montoEDP.getText().isEmpty() && Double.parseDouble(montoEDP.getText()) > 0){
+            if(!plazosEDP.getText().isEmpty() && Integer.parseInt(plazosEDP.getText()) > 0){
+
+                if(tipo.equals("Prestamo") &&  Integer.parseInt(plazosEDP.getText()) < 3){
+                    JOptionPane.showMessageDialog(null, "Error. Debes seleccionar al menos un plazo de 3 meses");
+                    return;
+                }
+
+                if(!descripcionEDP.getText().isEmpty()){
+
+                    boolean pagado;
+
+                    Calendar calendar = fechaEDP.getSelectedDate();
+
+                    // Convertir Calendar a LocalDate
+                    LocalDate fRegistro = calendar.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                    LocalDate fSoloRegistro = fRegistro.plusMonths(Integer.parseInt(plazosEDP.getText()));
+                    System.out.println(fSoloRegistro);
+                    if(pago.isSoloRegistro()){
+                        pagado = true;
+                    }else{
+                        pagado = false;
+                    }
+
+                    String mensaje = null;
+                    int resp = -1;
+
+                    if ((fRegistro.isAfter(dia) || fRegistro.equals(dia)) && !pagado) {
+                        mensaje = "Pago recurrente editado exitosamente.";
+                        resp = sistema.actualizarDeudaOPrestamo(Integer.parseInt(idEDP.getText()), Double.parseDouble(montoEDP.getText()),
+                                monedaEDP.getSelectedItem().toString(), plazosEDP.getText(), fRegistro, descripcionEDP.getText(), comboBoxCategoriaEDP.getSelectedItem().toString());
+                    } else if ((fSoloRegistro.isBefore(dia) || fSoloRegistro.isEqual(dia)) && pagado) {
+                        mensaje = "Pago recurrente editado exitosamente.";
+                        resp =  sistema.actualizarDeudaOPrestamo(Integer.parseInt(idEDP.getText()), Double.parseDouble(montoEDP.getText()),
+                                monedaEDP.getSelectedItem().toString(), plazosEDP.getText(), fRegistro, descripcionEDP.getText(), comboBoxCategoriaEDP.getSelectedItem().toString());
+                    } else {
+                        mensaje = fSoloRegistro.isAfter(dia) && pagado? "Error. La ultima fecha de pago debe ser anterior o igual al dia actual" : "Error. La fecha de pago debe ser posterior o igual al dia actual";
+                    }
+
+                    if (mensaje != null) {
+                        JOptionPane.showMessageDialog(null, mensaje);
+                    }
+
+                    if (resp != -1) {
+                        System.out.println(resp);
+                        mensaje = (resp == 1) ? "El pago se ha realizado para el mes 1" : "El pago no se ha realizado para el mes 1 por falta de saldo";
+                        JOptionPane.showMessageDialog(null, mensaje);
+
+                        saldoLabel.setText(String.valueOf(sistema.getSaldo()));
+                        sistema.mostrarPagoRecurrente();
+                    }
+
+                }else{
+                    JOptionPane.showMessageDialog(null, "Error. La descripcion no deber ser nula");
+                }
+
+            }else{
+                JOptionPane.showMessageDialog(null, "Error. El plazo debe ser mayor a 0");
+            }
+        }else{
+            JOptionPane.showMessageDialog(null, "Error. El monto debe ser mayor a 0.");
+        }
+    }
+
+    public void eliminarDeudaPrestamo(){
+        String tipo;
+        PagoRecurrente pago;
+
+        if(sistema.esDeuda(comboBoxDEDP.getSelectedItem().toString())){
+            tipo = "Deuda";
+        }else{
+            tipo = "Prestamo";
+        }
+
+        if(comboBoxDEDP.getSelectedItem() != null){
+
+            if(!idEEDP.getText().isEmpty() && Integer.parseInt(idEEDP.getText()) > 0){
+
+                int resp = sistema.buscarPrestamoODeuda(Integer.parseInt(idEEDP.getText()), comboBoxDEDP.getSelectedItem().toString());
+
+                if(resp == -3){
+                    camposEditarPagoRecurrente(false);
+                    JOptionPane.showMessageDialog(null, "Error. No se encontraron obligaciones financieras con ese id.");
+                }else if(resp == 1){
+                    sistema.eliminarDeudaPrestamo(Integer.parseInt(idEEDP.getText()), comboBoxDEDP.getSelectedItem().toString());
+                    JOptionPane.showMessageDialog(null, "Obligacion financiera eliminada correctamente");
+                    sistema.mostrarPagoRecurrente();
+                }else if(resp == -1){
+                    camposEditarPagoRecurrente(false);
+                    JOptionPane.showMessageDialog(null, "Error. No se puede eliminar una obligaciones financiera que ya se ha empezado a pagarse o que ya se ha pagado por completo.");
+                }
+
+            }else{
+                JOptionPane.showMessageDialog(null, "Error. El id debe ser mayor a 0.");
+            }
+        }else{
+            JOptionPane.showMessageDialog(null, "Error. Seleccione una categoria.");
+        }
+    }
+
+    public void camposEditarDeudaPrestamo(boolean bool){
+        montoEDP.setEditable(bool);
+        monedaEDP.setEnabled(bool);
+        plazosEDP.setEditable(bool);
+        descripcionEDP.setEditable(bool);
+        editarEDP.setEnabled(bool);
+    }
+
     //FECHA
     public void aumentarDia(){
         dia = dia.plusDays(1);
         dateLabel.setText(dia.toString());
         System.out.println(sistema.verificarPagosPendientes());
+
+        System.out.println(sistema.verificarPagosPendientesDeudasPrestamos());
+
         saldoLabel.setText(String.valueOf(sistema.getSaldo()));
     }
 
@@ -1576,6 +1912,9 @@ public class app extends JFrame {
         dia = dia.plusMonths(1);
         dateLabel.setText(dia.toString());
         System.out.println(sistema.verificarPagosPendientes());
+
+        System.out.println(sistema.verificarPagosPendientesDeudasPrestamos());
+
         saldoLabel.setText(String.valueOf(sistema.getSaldo()));
     }
 
@@ -1611,10 +1950,18 @@ public class app extends JFrame {
         comboBoxGasto.removeAllItems();
         comboBoxPresupuestoGastos.removeAllItems();
         comboBoxMostrarTransacciones.removeAllItems();
+        comboboxRegistrarPagoDeudasPr.removeAllItems();
+        comboBoxPrestamosInforme.removeAllItems();
+        comboBoxDeudasInforme.removeAllItems();
+        comboBoxCategoriaEDP.removeAllItems();
+        comboBoxDEDP.removeAllItems();
+        comboBoxCategoriaMDP.removeAllItems();
 
         // Obtener las categorías de ingreso y gasto del sistema
         Map<String, CategoriaIngreso> categoriasIngreso = sistema.getCategoriasIngreso();
         Map<String, CategoriaGasto> categoriasGasto = sistema.getCategoriasGasto();
+        Map<String, CategoriaPrestamo> categoriasPrestamo = sistema.getCategoriasPrestamos();
+        Map<String, CategoriaDeuda> categoriasDeudas = sistema.getCategoriasDeudas();
 
         // Actualizar comboBoxIngreso
         comboBoxIngreso.addItem("");
@@ -1650,6 +1997,52 @@ public class app extends JFrame {
         // Actualizar comboBoxInformesGastos
         for (String categoria : categoriasGasto.keySet()) {
             comboBoxInformesGastos.addItem(categoria);
+        }
+
+        //Actualizar comboBox comboBoxPrestamosInforme
+        for (String categoria : categoriasPrestamo.keySet()){
+            comboBoxPrestamosInforme.addItem(categoria);
+        }
+
+        //Actualizar combobox comboBoxDeudasInforme
+        for (String categoria : categoriasDeudas.keySet()){
+            comboBoxDeudasInforme.addItem(categoria);
+        }
+
+        //Actualizar comboBoxDeudasyPrestamos
+        for (String categoria : categoriasPrestamo.keySet()){
+            comboboxRegistrarPagoDeudasPr.addItem(categoria);
+        }
+
+        for (String categoria : categoriasDeudas.keySet()){
+            comboboxRegistrarPagoDeudasPr.addItem(categoria);
+        }
+
+        //Actualizar comboBoxCategoriaEDP
+        for (String categoria : categoriasPrestamo.keySet()){
+            comboBoxCategoriaEDP.addItem(categoria);
+        }
+
+        for (String categoria : categoriasDeudas.keySet()){
+            comboBoxCategoriaEDP.addItem(categoria);
+        }
+
+        //Actualizar comboBoxDEDP
+        for (String categoria : categoriasPrestamo.keySet()){
+            comboBoxDEDP.addItem(categoria);
+        }
+
+        for (String categoria : categoriasDeudas.keySet()){
+            comboBoxDEDP.addItem(categoria);
+        }
+
+        //Actualizar comboBoxCategoriaMDP
+        for (String categoria : categoriasPrestamo.keySet()){
+            comboBoxCategoriaMDP.addItem(categoria);
+        }
+
+        for (String categoria : categoriasDeudas.keySet()){
+            comboBoxCategoriaMDP.addItem(categoria);
         }
     }
 

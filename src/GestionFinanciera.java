@@ -1,5 +1,4 @@
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -7,15 +6,19 @@ public class GestionFinanciera {
     private Map<String, CategoriaIngreso> categoriasIngreso;
     private Map<String, CategoriaGasto> categoriasGasto;
     private HashMap<Integer, PagoRecurrente> pagosRecurrentes;
+    private HashMap<String, CategoriaPrestamo> categoriasPrestamos;
+    private HashMap<String, CategoriaDeuda> categoriasDeudas;
     private double presupuestoTotal;
-    private double saldo;
+    public static double saldo;
 
     public GestionFinanciera() {
         this.pagosRecurrentes = new HashMap<>();
         this.categoriasIngreso = new HashMap<>();
         this.categoriasGasto = new HashMap<>();
+        this.categoriasPrestamos = new HashMap<>();
+        this.categoriasDeudas = new HashMap<>();
         this.presupuestoTotal = 0;
-        this.saldo = 500;
+        saldo = 500;
     }
 
     public boolean agregarIngreso(double monto, Date fecha, String descripcion, String categoria, double tasaImpuesto) {
@@ -58,7 +61,7 @@ public class GestionFinanciera {
         if (!validarCategoria(categoria)) {
             return false;
         }
-        this.categoriasIngreso.put(categoria, new CategoriaIngreso("categoria"));
+        this.categoriasIngreso.put(categoria, new CategoriaIngreso(categoria));
         return true;
     }
 
@@ -67,6 +70,22 @@ public class GestionFinanciera {
             return false;
         }
         this.categoriasGasto.put(categoria, new CategoriaGasto(categoria, presupuesto));
+        return true;
+    }
+
+    public boolean crearCategoriaPrestamo(String categoria){
+        if(!validarCategoria(categoria)){
+            return false;
+        }
+        this.categoriasPrestamos.put(categoria, new CategoriaPrestamo(categoria));
+        return true;
+    }
+
+    public boolean crearCategoriaDeuda(String categoria){
+        if (!validarCategoria(categoria)) {
+            return false;
+        }
+        this.categoriasDeudas.put(categoria, new CategoriaDeuda(categoria));
         return true;
     }
 
@@ -187,7 +206,7 @@ public class GestionFinanciera {
     }
 
     public boolean validarCategoria(String categoria) {
-        if (this.categoriasIngreso.containsKey(categoria) || this.categoriasGasto.containsKey(categoria)) {
+        if (this.categoriasIngreso.containsKey(categoria) || this.categoriasGasto.containsKey(categoria) || this.categoriasDeudas.containsKey(categoria) || this.categoriasPrestamos.containsKey(categoria)) {
             System.out.println("La categoría ya existe.");
             return false;
         }
@@ -227,6 +246,54 @@ public class GestionFinanciera {
         return sePago;
     }
 
+    public int registrarDeudaOPrestamo(double monto, String moneda, String frecuencia, LocalDate fechaInicio, boolean pagadoCompletamente, String descripcion, String categoria){
+
+        double aumento = 1;
+        if(moneda.equals("GBP")){
+            aumento *= 1.33;
+        }else if(moneda.equals("EUR")){
+            aumento *= 1.18;
+        }
+
+        Finanzas cat;
+        if(categoriasDeudas.containsKey(categoria)){
+            cat = categoriasDeudas.get(categoria);
+        }else{
+            cat = categoriasPrestamos.get(categoria);
+            if(fechaInicio.equals(app.dia)){
+                System.out.println("hecho");
+                saldo += monto * aumento;
+            }
+        }
+
+        return cat.registrarPagoRecurrente(monto, moneda, frecuencia, fechaInicio, pagadoCompletamente, descripcion);
+    }
+
+    public int actualizarDeudaOPrestamo(int id, double monto, String moneda, String frecuencia, LocalDate fechaInicio, String descripcion, String categoria){
+
+        double aumento = 1;
+        if(moneda.equals("GBP")){
+            aumento *= 1.33;
+        }else if(moneda.equals("EUR")){
+            aumento *= 1.18;
+        }
+
+        Finanzas cat;
+        if(categoriasDeudas.containsKey(categoria)){
+            cat = categoriasDeudas.get(categoria);
+        }else{
+            cat = categoriasPrestamos.get(categoria);
+            if(fechaInicio.equals(app.dia)){
+                System.out.println("hecho");
+                saldo += monto * aumento;
+            }
+        }
+        System.out.println("Saldo: " + saldo);
+        System.out.println("Monto: " + monto);
+
+        return cat.actualizarPagoRecurrente(id, monto, moneda, frecuencia, fechaInicio, descripcion);
+
+    }
 
 
     public int buscarPagoRecurrente(int id){
@@ -243,6 +310,18 @@ public class GestionFinanciera {
         } else{
             return -1; //No dejar editar
         }
+    }
+
+    public int buscarPrestamoODeuda(int id, String categoria){
+
+        int resp = -3; //Pago no encontrado
+        if(categoriasDeudas.containsKey(categoria) && categoriasDeudas.get(categoria).getPagosRecurrentes().containsKey(id)){
+            resp = categoriasDeudas.get(categoria).buscarPagoRecurrente(id);
+        }else if(categoriasPrestamos.containsKey(categoria) && categoriasPrestamos.get(categoria).getPagosRecurrentes().containsKey(id)){
+            resp = categoriasPrestamos.get(categoria).buscarPagoRecurrente(id);
+        }
+
+        return resp;
     }
 
     public boolean noEstaPagandose(ArrayList<Boolean> pagados) {
@@ -333,6 +412,18 @@ public class GestionFinanciera {
     }
 
 
+    public String verificarPagosPendientesDeudasPrestamos(){
+        String mensaje = "";
+        for (CategoriaDeuda cat : categoriasDeudas.values()) {
+            mensaje += cat.verificarPagosPendientes();
+        }
+
+        for (CategoriaPrestamo cat : categoriasPrestamos.values()) {
+            mensaje += cat.verificarPagosPendientes();
+        }
+
+        return mensaje;
+    }
 
     public boolean realizarPagos(double monto, String moneda){
 
@@ -386,8 +477,15 @@ public class GestionFinanciera {
     }
 
     public void eliminarPagoRecurrente(int id){
-        PagoRecurrente pago = pagosRecurrentes.get(id);
+        pagosRecurrentes.remove(id);
+    }
 
+    public void eliminarDeudaPrestamo(int id, String categoria){
+        if(categoriasDeudas.containsKey(categoria)){
+            categoriasDeudas.get(categoria).getPagosRecurrentes().remove(id);
+        }else{
+            categoriasPrestamos.get(categoria).getPagosRecurrentes().remove(id);
+        }
     }
 
     public void mostrarPagoRecurrente(){
@@ -422,7 +520,27 @@ public class GestionFinanciera {
                 text += categoria + "\n";
             }
         }
+
+        if(tipo.equals("Prestamo") || tipo.equals("Ambas")){
+            for(String categoria : this.categoriasPrestamos.keySet()){
+                text += categoria + "\n";
+            }
+        }
+
+        if(tipo.equals("Deuda") || tipo.equals("Ambas")){
+            for(String categoria : this.categoriasDeudas.keySet()){
+                text += categoria + "\n";
+            }
+        }
+
         return text;
+    }
+
+    public boolean esDeuda(String cat){
+        if(categoriasDeudas.containsKey(cat)){
+            return true;
+        }
+        return false;
     }
 
     public String mostrarCategoriasOrdenadasAZ(String tipo) {
@@ -434,6 +552,14 @@ public class GestionFinanciera {
 
         if (tipo.equals("Gasto") || tipo.equals("Ambas")) {
             categoriasOrdenadas.addAll(this.categoriasGasto.keySet());
+        }
+
+        if(tipo.equals("Prestamo") || tipo.equals("Ambas")){
+            categoriasOrdenadas.addAll(this.categoriasPrestamos.keySet());
+        }
+
+        if(tipo.equals("Deuda") || tipo.equals("Ambas")){
+            categoriasOrdenadas.addAll(this.categoriasDeudas.keySet());
         }
 
         bubbleSort(categoriasOrdenadas);
@@ -454,6 +580,14 @@ public class GestionFinanciera {
 
         if (tipo.equals("Gasto") || tipo.equals("Ambas")) {
             categoriasOrdenadas.addAll(this.categoriasGasto.keySet());
+        }
+
+        if(tipo.equals("Prestamo") || tipo.equals("Ambas")){
+            categoriasOrdenadas.addAll(this.categoriasPrestamos.keySet());
+        }
+
+        if(tipo.equals("Deuda") || tipo.equals("Ambas")){
+            categoriasOrdenadas.addAll(this.categoriasDeudas.keySet());
         }
 
         bubbleSort(categoriasOrdenadas);
@@ -551,5 +685,12 @@ public class GestionFinanciera {
 
     public HashMap<Integer, PagoRecurrente> getPagosRecurrentes() {
         return pagosRecurrentes;
+    }
+
+    public HashMap<String, CategoriaPrestamo> getCategoriasPrestamos() {
+        return categoriasPrestamos;
+    }
+    public HashMap<String, CategoriaDeuda> getCategoriasDeudas() {
+        return categoriasDeudas;
     }
 }

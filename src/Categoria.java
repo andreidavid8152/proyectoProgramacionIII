@@ -21,8 +21,6 @@ public abstract class Categoria {
         return true;  // La transacción se agrega exitosamente por defecto
     }
 
-
-
     public Transaccion buscarTransaccion(int id) {
         return transacciones.stream().filter(t -> t.getId() == id).findFirst().orElse(null);
     }
@@ -41,6 +39,10 @@ public abstract class Categoria {
 
     public int actnextId() {
         return nextId++;
+    }
+
+    public String getNombre() {
+        return nombre;
     }
 
     public void setImpuestos(double impuestos) {
