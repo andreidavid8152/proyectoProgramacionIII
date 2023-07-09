@@ -5,5 +5,4 @@ public class Main {
         sistema.registerUser("", "", "", true);
         new LoginWindow(sistema, null);
     }
-
 }

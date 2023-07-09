@@ -160,7 +160,8 @@ public class app extends JFrame {
         dia = LocalDate.now();
         dateLabel.setText(dia.toString());
 
-        saldoLabel.setText(String.valueOf(sistema.getSaldo()));
+        saldoLabel.setText(String.format("%.2f", sistema.getSaldo()));
+
 
         sistemaLogin = system;
         usuarioLabel.setText("Usuario: " + user);
@@ -313,12 +314,12 @@ public class app extends JFrame {
                 if (selectedCategory != null && !selectedCategory.equals("")) {
                     CategoriaGasto selectedCategoriaGasto = sistema.getCategoriasGasto().get(selectedCategory);
                     if (selectedCategoriaGasto != null) {
-                        presupuestoCategoriaLabel.setText("Presupuesto Categoria: " + selectedCategoriaGasto.getPresupuesto());
-                        gastosImpuestosLabel.setText(String.valueOf(selectedCategoriaGasto.getImpuestos()));
+                        presupuestoCategoriaLabel.setText(String.format("Presupuesto Categoria: %.2f", selectedCategoriaGasto.getPresupuesto()));
+                        gastosImpuestosLabel.setText(String.format("%.2f", selectedCategoriaGasto.getImpuestos()));
                     }
                 }else{
-                    presupuestoCategoriaLabel.setText("Presupuesto Categoria: " + "0.0");
-                    gastosImpuestosLabel.setText("0.0");
+                    presupuestoCategoriaLabel.setText("Presupuesto Categoria: " + "0,0");
+                    gastosImpuestosLabel.setText("0,0");
                 }
             }
         });
@@ -414,10 +415,10 @@ public class app extends JFrame {
                 if (selectedCategory != null && !selectedCategory.equals("")) {
                     CategoriaGasto selectedCategoriaGasto = sistema.getCategoriasGasto().get(selectedCategory);
                     if (selectedCategoriaGasto != null) {
-                        textFieldPresupuestoActual.setText(String.valueOf(selectedCategoriaGasto.getPresupuesto()));
+                        textFieldPresupuestoActual.setText(String.format("%.2f", selectedCategoriaGasto.getPresupuesto()));
                     }
                 }else{
-                    textFieldPresupuestoActual.setText("0.0");
+                    textFieldPresupuestoActual.setText("0,0");
                 }
             }
         });
@@ -446,12 +447,12 @@ public class app extends JFrame {
                 if (selectedCategory != null && !selectedCategory.equals("")) {
                     CategoriaIngreso selectedCategoriaIngreso = sistema.getCategoriasIngreso().get(selectedCategory);
                     if (selectedCategoriaIngreso != null) {
-                        ingresosIngreso.setText(String.valueOf(selectedCategoriaIngreso.getIngresos()));
-                        ingresoImpuestos.setText(String.valueOf(selectedCategoriaIngreso.getImpuestos()));
+                        ingresosIngreso.setText(String.format("%.2f", selectedCategoriaIngreso.getIngresos()));
+                        ingresoImpuestos.setText(String.format("%.2f", selectedCategoriaIngreso.getImpuestos()));
                     }
                 } else {
-                    ingresosIngreso.setText("0.0");
-                    ingresoImpuestos.setText("0.0");
+                    ingresosIngreso.setText("0,0");
+                    ingresoImpuestos.setText("0,0");
                 }
             }
         });
@@ -638,6 +639,82 @@ public class app extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 generarInformeDeudas();
+            }
+        });
+        montoRDP.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+                char c = e.getKeyChar();
+                if (!((c >= '0') && (c <= '9') ||
+                        (c == KeyEvent.VK_BACK_SPACE) ||
+                        (c == KeyEvent.VK_DELETE) ||
+                        (c == '.' && textFieldMontoIngreso.getText().indexOf('.') == -1))) {
+                    e.consume();  // ignore the event
+                }
+            }
+        });
+        plazoRDP.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+                char c = e.getKeyChar();
+                if (!Character.isDigit(c)) {
+                    e.consume();
+                }
+            }
+        });
+        registroRDP.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                if (registroRDP.isSelected()) {
+                    noRDP.setSelected(false);
+                }
+            }
+        });
+        noRDP.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                if (noRDP.isSelected()) {
+                    registroRDP.setSelected(false);
+                }
+            }
+        });
+        idEDP.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+                char c = e.getKeyChar();
+                if (!Character.isDigit(c)) {
+                    e.consume();
+                }
+            }
+        });
+        montoEDP.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+                char c = e.getKeyChar();
+                if (!((c >= '0') && (c <= '9') ||
+                        (c == KeyEvent.VK_BACK_SPACE) ||
+                        (c == KeyEvent.VK_DELETE) ||
+                        (c == '.' && textFieldMontoIngreso.getText().indexOf('.') == -1))) {
+                    e.consume();  // ignore the event
+                }
+            }
+        });
+        plazosEDP.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+                char c = e.getKeyChar();
+                if (!Character.isDigit(c)) {
+                    e.consume();
+                }
+            }
+        });
+        idEEDP.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+                char c = e.getKeyChar();
+                if (!Character.isDigit(c)) {
+                    e.consume();
+                }
             }
         });
     }
@@ -889,13 +966,15 @@ public class app extends JFrame {
 
         textAreaGenerarDatosCate.setText(texto);
         generarDatosButton.setEnabled(false);
+        saldoLabel.setText(String.format("%.2f", sistema.getSaldo()));
+
     }
     public void generarPresupuestos() {
         sistema.asignarPresupuestoGeneral(300);
         sistema.asignarPresupuestoACategoriaGasto("DesarrolloSoftware", 100);
         sistema.asignarPresupuestoACategoriaGasto("GastosOficina", 100);
         sistema.asignarPresupuestoACategoriaGasto("GastoMarketing", 100);
-        labelPresupuestoTotal.setText(String.valueOf("Presupuesto Total: " + sistema.getPresupuestoTotal()));
+        labelPresupuestoTotal.setText(String.format("Presupuesto Total: %.2f", sistema.getPresupuestoTotal()));
     }
     public void generarGastoseIngresos() {
 
@@ -965,11 +1044,13 @@ public class app extends JFrame {
                         if (sistema.agregarIngreso(monto, fechaActual, textAreaDescripcionIngreso.getText(), comboBoxIngreso.getSelectedItem().toString(),
                                 impuesto)) {
                             CategoriaIngreso selectedCategoriaIngreso = sistema.getCategoriasIngreso().get(comboBoxIngreso.getSelectedItem().toString());
-                            ingresosIngreso.setText(String.valueOf(selectedCategoriaIngreso.getIngresos()));
-                            ingresoImpuestos.setText(String.valueOf(selectedCategoriaIngreso.getImpuestos()));
+                            ingresosIngreso.setText(String.format("%.2f", selectedCategoriaIngreso.getIngresos()));
+                            ingresoImpuestos.setText(String.format("%.2f", selectedCategoriaIngreso.getImpuestos()));
+
                             textFieldMontoIngreso.setText("");
                             textAreaDescripcionIngreso.setText("");
-                            saldoLabel.setText(String.valueOf(sistema.getSaldo()));
+                            saldoLabel.setText(String.format("%.2f", sistema.getSaldo()));
+
                             comboBoxIngreso.setSelectedIndex(0);
                             JOptionPane.showMessageDialog(null, "El ingreso ha sido agregado correctamente");
                         } else {
@@ -1003,8 +1084,8 @@ public class app extends JFrame {
                             textFieldMontoGasto.setText("");
                             JTextAreaDescripcionGasto.setText("");
                             CategoriaGasto selectedCategoriaGasto = sistema.getCategoriasGasto().get(comboBoxGasto.getSelectedItem().toString());
-                            presupuestoCategoriaLabel.setText("Presupuesto Categoria: " + selectedCategoriaGasto.getPresupuesto());
-                            gastosImpuestosLabel.setText(String.valueOf(selectedCategoriaGasto.getImpuestos()));
+                            presupuestoCategoriaLabel.setText(String.format("Presupuesto Categoria: %.2f", selectedCategoriaGasto.getPresupuesto()));
+                            gastosImpuestosLabel.setText(String.format("%.2f", selectedCategoriaGasto.getImpuestos()));
                             comboBoxGasto.setSelectedIndex(0);
                             JOptionPane.showMessageDialog(null, "El gasto ha sido agregado correctamente");
                         } else if (resp == -1) {
@@ -1136,7 +1217,8 @@ public class app extends JFrame {
                                 textAreaEditarDescripTransaccion.getText(), Double.parseDouble(textFieldTasaImpuestoDeduccion.getText()));
                         if (respIngreso == 1) {
                             sistema.setSaldo((sistema.getSaldo()-ingresoAnterior)+sistema.getCategoriasIngreso().get(textFieldEditarCategoria.getText()).getIngresos());
-                            saldoLabel.setText(String.valueOf(sistema.getSaldo()));
+                            saldoLabel.setText(String.format("%.2f", sistema.getSaldo()));
+
                             JOptionPane.showMessageDialog(null, "Se ha modificado correctamente la transaccion");
                         } else {
                             textFieldMontoEditarTransaccion.setEditable(false);
@@ -1180,7 +1262,8 @@ public class app extends JFrame {
 
                     if (sistema.getCategoriasIngreso().get(nombreCategoriaEliminar.getText()).eliminarTransaccion(Integer.parseInt(eliminarIdTransaccion.getText()))) {
                         sistema.setSaldo(sistema.getSaldo()-ingresoEliminado);
-                        saldoLabel.setText(String.valueOf(sistema.getSaldo()));
+                        saldoLabel.setText(String.format("%.2f", sistema.getSaldo()));
+
                         JOptionPane.showMessageDialog(null, "Transaccion eliminada correctamente");
                     } else {
                         JOptionPane.showMessageDialog(null, "Error. No existe ese id");
@@ -1251,8 +1334,9 @@ public class app extends JFrame {
             if(!sistema.existenTransaccionesGastos()){
 
                 if(sistema.asignarPresupuestoGeneral(Double.parseDouble(textFiedlPresupuestoTotal.getText()))){
-                    labelPresupuestoTotal.setText("Presupuesto Total: " + sistema.getPresupuestoTotal());
-                    saldoLabel.setText(String.valueOf(sistema.getSaldo()));
+                    labelPresupuestoTotal.setText(String.format("Presupuesto Total: %.2f", sistema.getPresupuestoTotal()));
+                    saldoLabel.setText(String.format("%.2f", sistema.getSaldo()));
+
                     JOptionPane.showMessageDialog(null, "Presupuesto asignado correctamente");
                 }else{
                     JOptionPane.showMessageDialog(null, "Error. El presupuesto a asignar no se puede ser mayor al saldos");
@@ -1270,8 +1354,9 @@ public class app extends JFrame {
         if (!textFiedlPresupuestoTotal.getText().isEmpty() && !textFiedlPresupuestoTotal.getText().equals("0")) {
 
             if(sistema.aumentarPresupuestoGeneral(Double.parseDouble(textFiedlPresupuestoTotal.getText()))){
-                labelPresupuestoTotal.setText("Presupuesto Total: " + sistema.getPresupuestoTotal());
-                saldoLabel.setText(String.valueOf(sistema.getSaldo()));
+                labelPresupuestoTotal.setText(String.format("Presupuesto Total: %.2f", sistema.getPresupuestoTotal()));
+                saldoLabel.setText(String.format("%.2f", sistema.getSaldo()));
+
                 JOptionPane.showMessageDialog(null, "Presupuesto asignado correctamente");
             }else{
                 JOptionPane.showMessageDialog(null, "Error. Ya no hay mas saldo para asignar al presupuesto.");
@@ -1289,8 +1374,8 @@ public class app extends JFrame {
 
             if(sistema.getCategoriasGasto().get(comboBoxPresupuestoGastos.getSelectedItem().toString()).getTransacciones().isEmpty()){
                 if (sistema.asignarPresupuestoACategoriaGasto(comboBoxPresupuestoGastos.getSelectedItem().toString(), Double.parseDouble(textFieldMontoAsignarCatGasto.getText()))) {
-                    textFieldPresupuestoActual.setText(String.valueOf(sistema.getCategoriasGasto().get(comboBoxPresupuestoGastos.getSelectedItem().toString()).getPresupuesto()));
-                    labelPresupuestoTotal.setText("Presupuesto Total: " + sistema.getPresupuestoTotal());
+                    textFieldPresupuestoActual.setText(String.format("%.2f", sistema.getCategoriasGasto().get(comboBoxPresupuestoGastos.getSelectedItem().toString()).getPresupuesto()));
+                    labelPresupuestoTotal.setText(String.format("Presupuesto Total: %.2f", sistema.getPresupuestoTotal()));
                     JOptionPane.showMessageDialog(null, "Presupuesto asignado correctamente");
                 } else {
                     JOptionPane.showMessageDialog(null, "Error. No se puede asignar un monto mayor al presupuesto total.");
@@ -1308,8 +1393,8 @@ public class app extends JFrame {
         if (!textFieldMontoAsignarCatGasto.getText().isEmpty()) {
 
             if(sistema.aumentarPresupuestoACategoriGasto(comboBoxPresupuestoGastos.getSelectedItem().toString(), Double.parseDouble(textFieldMontoAsignarCatGasto.getText()))){
-                textFieldPresupuestoActual.setText(String.valueOf(sistema.getCategoriasGasto().get(comboBoxPresupuestoGastos.getSelectedItem().toString()).getPresupuesto()));
-                labelPresupuestoTotal.setText("Presupuesto Total: " + sistema.getPresupuestoTotal());
+                textFieldPresupuestoActual.setText(String.format("%.2f", sistema.getCategoriasGasto().get(comboBoxPresupuestoGastos.getSelectedItem().toString()).getPresupuesto()));
+                labelPresupuestoTotal.setText(String.format("Presupuesto Total: %.2f", sistema.getPresupuestoTotal()));
                 JOptionPane.showMessageDialog(null, "Presupuesto asignado correctamente");
             }else{
                 JOptionPane.showMessageDialog(null, "Error. El presupuesto total es menor que lo que se quiere asignar o aumentar");
@@ -1457,7 +1542,8 @@ public class app extends JFrame {
                             mensaje = (resp == 1) ? "El pago se ha realizado para el mes 1" : "El pago no se ha realizado para el mes 1 por falta de saldo";
                             JOptionPane.showMessageDialog(null, mensaje);
 
-                            saldoLabel.setText(String.valueOf(sistema.getSaldo()));
+                            saldoLabel.setText(String.format("%.2f", sistema.getSaldo()));
+
                             sistema.mostrarPagoRecurrente();
                         }
 
@@ -1550,7 +1636,8 @@ public class app extends JFrame {
                         mensaje = (resp == 1) ? "El pago se ha realizado para el mes 1" : "El pago no se ha realizado para el mes 1 por falta de saldo";
                         JOptionPane.showMessageDialog(null, mensaje);
 
-                        saldoLabel.setText(String.valueOf(sistema.getSaldo()));
+                        saldoLabel.setText(String.format("%.2f", sistema.getSaldo()));
+
                         sistema.mostrarPagoRecurrente();
                     }
 
@@ -1724,7 +1811,8 @@ public class app extends JFrame {
                                 mensaje = (resp == 1) ? "El pago se ha realizado para el mes 1" : "El pago no se ha realizado para el mes 1 por falta de saldo";
                                 JOptionPane.showMessageDialog(null, mensaje);
 
-                                saldoLabel.setText(String.valueOf(sistema.getSaldo()));
+                                saldoLabel.setText(String.format("%.2f", sistema.getSaldo()));
+
                                 sistema.mostrarPagoRecurrente();
                             }
 
@@ -1858,7 +1946,8 @@ public class app extends JFrame {
                         mensaje = (resp == 1) ? "El pago se ha realizado para el mes 1" : "El pago no se ha realizado para el mes 1 por falta de saldo";
                         JOptionPane.showMessageDialog(null, mensaje);
 
-                        saldoLabel.setText(String.valueOf(sistema.getSaldo()));
+                        saldoLabel.setText(String.format("%.2f", sistema.getSaldo()));
+
                         sistema.mostrarPagoRecurrente();
                     }
 
@@ -2027,7 +2116,8 @@ public class app extends JFrame {
 
         System.out.println(sistema.verificarPagosPendientesDeudasPrestamos());
 
-        saldoLabel.setText(String.valueOf(sistema.getSaldo()));
+        saldoLabel.setText(String.format("%.2f", sistema.getSaldo()));
+
     }
 
     public void aumentarMes(){
@@ -2037,7 +2127,8 @@ public class app extends JFrame {
 
         System.out.println(sistema.verificarPagosPendientesDeudasPrestamos());
 
-        saldoLabel.setText(String.valueOf(sistema.getSaldo()));
+        saldoLabel.setText(String.format("%.2f", sistema.getSaldo()));
+
     }
 
     //ACTIVACIONES Y ACTUALIZACIONES.-
