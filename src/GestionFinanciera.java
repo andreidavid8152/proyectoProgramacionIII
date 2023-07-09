@@ -112,7 +112,17 @@ public class GestionFinanciera {
                     transaccion.setCategoria(nuevoNombre);
                 }
                 return true;
-            } else {
+            } else if(this.categoriasPrestamos.containsKey(viejoNombre)){
+                CategoriaPrestamo cat = this.categoriasPrestamos.get(viejoNombre);
+                this.categoriasPrestamos.remove(viejoNombre);
+                this.categoriasPrestamos.put(nuevoNombre, cat);
+                return true;
+            }else if(this.categoriasDeudas.containsKey(viejoNombre)){
+                CategoriaDeuda cat = this.categoriasDeudas.get(viejoNombre);
+                this.categoriasDeudas.remove(viejoNombre);
+                this.categoriasDeudas.put(nuevoNombre, cat);
+                return true;
+            }else {
                 System.out.println("La categoría '" + viejoNombre + "' no existe.");
                 return false;
             }
@@ -145,7 +155,29 @@ public class GestionFinanciera {
                 System.out.println("Categoría de gasto '" + categoria + "' eliminada con éxito.");
                 return 0;
             }
-        } else {
+        }  else if (this.categoriasPrestamos.containsKey(categoria)) {
+            CategoriaPrestamo cat = this.categoriasPrestamos.get(categoria);
+            // Verificar si hay presupuesto asignado y transacciones
+            if (!cat.getPagosRecurrentes().isEmpty()) {
+                System.out.println("La categoría de prestamos '" + categoria + "' tiene transacciones asignadas. No se puede eliminar.");
+                return 1;
+            } else {
+                this.categoriasPrestamos.remove(categoria);
+                System.out.println("Categoría de prestamos '" + categoria + "' eliminada con éxito.");
+                return 0;
+            }
+        } else if (this.categoriasDeudas.containsKey(categoria)) {
+            CategoriaDeuda cat = this.categoriasDeudas.get(categoria);
+            // Verificar si hay presupuesto asignado y transacciones
+            if (!cat.getPagosRecurrentes().isEmpty()) {
+                System.out.println("La categoría de deuda '" + categoria + "' tiene transacciones asignadas. No se puede eliminar.");
+                return 1;
+            } else {
+                this.categoriasDeudas.remove(categoria);
+                System.out.println("Categoría de deuda '" + categoria + "' eliminada con éxito.");
+                return 0;
+            }
+        }else {
             System.out.println("La categoría '" + categoria + "' no existe.");
             return -1;
         }

@@ -816,12 +816,19 @@ public class app extends JFrame {
 
     //Informes
     public void generarInformeIngresos(){
+        double mediaImpuestos = 0;
         // Crear un conjunto de datos de categorías
         CategoriaIngreso cat = sistema.getCategoriasIngreso().get(comboBoxInformesIngresos.getSelectedItem().toString());
+
+        for(Transaccion transaccion : cat.getTransacciones()){
+            mediaImpuestos += transaccion.getTasaImpuesto();
+        }
+
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-        dataset.addValue(cat.getIngresos(), "I.N", "Ingresos Netos");
-        dataset.addValue(cat.getTransacciones().size(), "T", "Transacciones");
-        dataset.addValue(cat.getImpuestos(), "I", "Impuestos");
+        dataset.addValue(cat.getIngresos(), "Ingresos", "Ingresos Netos");
+        dataset.addValue(cat.getTransacciones().size(), "Transaccion", "Transacciones");
+        dataset.addValue(cat.getImpuestos(), "Impuesto", "Impuestos");
+        dataset.addValue(mediaImpuestos/cat.getTransacciones().size(), "Impuesto", "Tasa Impuesto (media)");
 
         // Crear un gráfico de barras
         JFreeChart chart = ChartFactory.createBarChart(
@@ -838,12 +845,18 @@ public class app extends JFrame {
     }
 
     public void generarInformeGastos(){
+        double mediaImpuestos = 0;
         // Crear un conjunto de datos de categorías
         CategoriaGasto cat = sistema.getCategoriasGasto().get(comboBoxInformesGastos.getSelectedItem().toString());
+        for(Transaccion transaccion : cat.getTransacciones()){
+            mediaImpuestos += transaccion.getTasaImpuesto();
+        }
+
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-        dataset.addValue(cat.getPresupuesto(), "P", "Presupuesto");
-        dataset.addValue(cat.getTransacciones().size(), "T", "Transacciones");
-        dataset.addValue(cat.getImpuestos(), "I", "Impuestos");
+        dataset.addValue(cat.getPresupuesto(), "Presupuesto", "Presupuesto Categoria");
+        dataset.addValue(cat.getTransacciones().size(), "Transaccion", "Transacciones");
+        dataset.addValue(cat.getImpuestos(), "Impuestos", "Impuestos");
+        dataset.addValue(mediaImpuestos/cat.getTransacciones().size(), "Impuestos", "Tasa Impuesto (media)");
 
         // Crear un gráfico de barras
         JFreeChart chart = ChartFactory.createBarChart(
@@ -922,41 +935,64 @@ public class app extends JFrame {
     public void generarCategorias() {
         String texto = "Las categorias agregadas son:";
         if (sistema.crearCategoriaIngreso("VentaSoftware")) {
-            texto += "\n\n---INGRESO---\nVentaSoftware \n";
+            texto += "\n\n---INGRESO---\nVentaSoftware: 3 Transacciones \n";
         } else {
             JOptionPane.showMessageDialog(null, "Error. La categoria VentaSoftware ya ha sido agregada");
         }
 
         if (sistema.crearCategoriaIngreso("ConsultoriaTI")) {
-            texto += "ConsultoriaTI \n";
+            texto += "ConsultoriaTI: 3 Transacciones \n";
         } else {
             JOptionPane.showMessageDialog(null, "Error. La categoria ConsultoríaTI ya ha sido agregada");
         }
 
         if (sistema.crearCategoriaIngreso("Soporte")) {
-            texto += "Soporte \n\n---GASTO---\n";
+            texto += "Soporte: 3 Transacciones \n\n---GASTO---\n";
         } else {
             JOptionPane.showMessageDialog(null, "Error. La categoria Soporte ya ha sido agregada");
         }
 
         if (sistema.crearCategoriaGasto("DesarrolloSoftware", 0)) {
-            texto += "DesarrolloSoftware \n";
+            texto += "DesarrolloSoftware: 3 Transacciones \n";
         } else {
             JOptionPane.showMessageDialog(null, "Error. La categoria DesarrolloSoftware ya ha sido agregada");
         }
 
         if (sistema.crearCategoriaGasto("GastosOficina", 0)) {
-            texto += "GastosOficina \n";
+            texto += "GastosOficina: 3 Transacciones \n";
         } else {
             JOptionPane.showMessageDialog(null, "Error. La categoria GastosOficina ya ha sido agregada");
         }
 
         if (sistema.crearCategoriaGasto("GastoMarketing", 0)) {
-            texto += "GastoMarketing \n";
+            texto += "GastoMarketing: 3 Transacciones \n\n---DEUDAS---\n";
         } else {
             JOptionPane.showMessageDialog(null, "Error. La categoria GastoMarketing ya ha sido agregada");
         }
 
+        if(sistema.crearCategoriaDeuda("LineasDeCredito")){
+            texto += "LineasDeCredito \n";
+        }else{
+            JOptionPane.showMessageDialog(null, "Error. La categoria LineasDeCredito ya ha sido agregada");
+        }
+
+        if(sistema.crearCategoriaDeuda("CuentasPorPagar")){
+            texto += "CuentasPorPagar \n\n---PRESTAMOS---\n";
+        }else{
+            JOptionPane.showMessageDialog(null, "Error. La categoriCuentasPorPagar ya ha sido agregada");
+        }
+
+        if(sistema.crearCategoriaPrestamo("LicenciasSoftware")){
+            texto += "LicenciasSoftware \n";
+        }else{
+            JOptionPane.showMessageDialog(null, "Error. La categoria LicenciasSoftware ya ha sido agregada");
+        }
+
+        if(sistema.crearCategoriaPrestamo("ServiciosSoftware")){
+            texto += "ServiciosSoftware \n";
+        }else{
+            JOptionPane.showMessageDialog(null, "Error. La categoria ServiciosSoftware ya ha sido agregada");
+        }
 
         actualizarComboBoxes();
 
@@ -2112,9 +2148,16 @@ public class app extends JFrame {
     public void aumentarDia(){
         dia = dia.plusDays(1);
         dateLabel.setText(dia.toString());
-        System.out.println(sistema.verificarPagosPendientes());
+        String resultado = sistema.verificarPagosPendientes();
+        if (!resultado.isEmpty()){
+            JOptionPane.showMessageDialog(null, resultado);
+        }
 
-        System.out.println(sistema.verificarPagosPendientesDeudasPrestamos());
+        String resp = sistema.verificarPagosPendientesDeudasPrestamos();
+
+        if(!resp.isEmpty()){
+            JOptionPane.showMessageDialog(null, resp);
+        }
 
         saldoLabel.setText(String.format("%.2f", sistema.getSaldo()));
 
@@ -2123,9 +2166,17 @@ public class app extends JFrame {
     public void aumentarMes(){
         dia = dia.plusMonths(1);
         dateLabel.setText(dia.toString());
-        System.out.println(sistema.verificarPagosPendientes());
 
-        System.out.println(sistema.verificarPagosPendientesDeudasPrestamos());
+        String resultado = sistema.verificarPagosPendientes();
+        if (!resultado.isEmpty()){
+            JOptionPane.showMessageDialog(null, resultado);
+        }
+
+        String resp = sistema.verificarPagosPendientesDeudasPrestamos();
+
+        if(!resp.isEmpty()){
+            JOptionPane.showMessageDialog(null, resp);
+        }
 
         saldoLabel.setText(String.format("%.2f", sistema.getSaldo()));
 

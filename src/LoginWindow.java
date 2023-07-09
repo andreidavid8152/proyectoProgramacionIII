@@ -13,7 +13,7 @@ public class LoginWindow extends JFrame {
         this.loginSystem = loginSystem;
 
         setTitle("Login");
-        setSize(800, 500);
+        setSize(900, 700);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         JPanel panel = new JPanel();
@@ -114,7 +114,7 @@ public class LoginWindow extends JFrame {
                 if(aplicacion == null){
                     app app = new app(username, loginSystem);
                     app.setTitle("Rol de pagos");
-                    app.setSize(800, 500);
+                    app.setSize(900, 700);
                     app.setVisible(true);
                     app.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 }else{
