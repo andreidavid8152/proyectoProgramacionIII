@@ -2187,12 +2187,12 @@ public class app extends JFrame {
                             if ((fRegistro.isAfter(dia) || fRegistro.equals(dia)) && !pagado) {
                                 mensaje = tipo + " agregado exitosamente";
                                 resp = sistema.registrarDeudaOPrestamo(Double.parseDouble(montoRDP.getText()),
-                                        comboBoxMonedaRegistrar.getSelectedItem().toString(), plazoRDP.getText(), fRegistro, pagado, descripcionRDP.getText(), comboboxRegistrarPagoDeudasPr.getSelectedItem().toString());
+                                        monedaRDP.getSelectedItem().toString(), plazoRDP.getText(), fRegistro, pagado, descripcionRDP.getText(), comboboxRegistrarPagoDeudasPr.getSelectedItem().toString());
                             } else if ((fSoloRegistro.isBefore(dia) || fSoloRegistro.isEqual(dia)) && pagado) {
                                 System.out.println("pase");
                                 mensaje = tipo + " agregado exitosamente";
                                 resp = sistema.registrarDeudaOPrestamo(Double.parseDouble(montoRDP.getText()),
-                                        comboBoxMonedaRegistrar.getSelectedItem().toString(), plazoRDP.getText(), fRegistro, pagado, descripcionRDP.getText(), comboboxRegistrarPagoDeudasPr.getSelectedItem().toString());
+                                        monedaRDP.getSelectedItem().toString(), plazoRDP.getText(), fRegistro, pagado, descripcionRDP.getText(), comboboxRegistrarPagoDeudasPr.getSelectedItem().toString());
                             } else {
                                 mensaje = fSoloRegistro.isAfter(dia) && pagado? "Error. La ultima fecha de pago debe ser anterior o igual al dia actual" : "Error. La fecha de pago debe ser posterior o igual al dia actual";
                             }
@@ -2712,7 +2712,10 @@ public class app extends JFrame {
 
     public void cambiarUsuario(String user){
         if(user.equals("")){
-
+            tabbedUsuarios.setEnabled(true);
+            textFieldNombreUsuarioCrear.setEnabled(true);
+            passwordFieldCrear.setEnabled(true);
+            crearUsuarioButton.setEnabled(true);
         }else{
             tabbedUsuarios.setEnabled(false);
             textFieldNombreUsuarioCrear.setEnabled(false);
