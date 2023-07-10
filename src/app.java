@@ -266,7 +266,7 @@ public class app extends JFrame {
                 if (!((c >= '0') && (c <= '9') ||
                         (c == KeyEvent.VK_BACK_SPACE) ||
                         (c == KeyEvent.VK_DELETE) ||
-                        (c == '.' && textFieldMontoIngreso.getText().indexOf('.') == -1))) {
+                        (c == '.' && textFiedlPresupuestoTotal.getText().indexOf('.') == -1))) {
                     e.consume();  // ignore the event
                 }
             }
@@ -302,7 +302,7 @@ public class app extends JFrame {
                 if (!((c >= '0') && (c <= '9') ||
                         (c == KeyEvent.VK_BACK_SPACE) ||
                         (c == KeyEvent.VK_DELETE) ||
-                        (c == '.' && textFieldMontoIngreso.getText().indexOf('.') == -1))) {
+                        (c == '.' && textFieldMontoAsignarCatGasto.getText().indexOf('.') == -1))) {
                     e.consume();  // ignore the event
                 }
             }
@@ -375,8 +375,11 @@ public class app extends JFrame {
             @Override
             public void keyTyped(KeyEvent e) {
                 char c = e.getKeyChar();
-                if (!Character.isDigit(c)) {
-                    e.consume();
+                if (!((c >= '0') && (c <= '9') ||
+                        (c == KeyEvent.VK_BACK_SPACE) ||
+                        (c == KeyEvent.VK_DELETE) ||
+                        (c == '.' && textFieldMontoEditarTransaccion.getText().indexOf('.') == -1))) {
+                    e.consume();  // ignore the event
                 }
             }
         });
@@ -435,7 +438,7 @@ public class app extends JFrame {
                 if (!((c >= '0') && (c <= '9') ||
                         (c == KeyEvent.VK_BACK_SPACE) ||
                         (c == KeyEvent.VK_DELETE) ||
-                        (c == '.' && textFieldMontoIngreso.getText().indexOf('.') == -1))) {
+                        (c == '.' && textFieldTasaImpuesto.getText().indexOf('.') == -1))) {
                     e.consume();  // ignore the event
                 }
             }
@@ -517,7 +520,7 @@ public class app extends JFrame {
                 if (!((c >= '0') && (c <= '9') ||
                         (c == KeyEvent.VK_BACK_SPACE) ||
                         (c == KeyEvent.VK_DELETE) ||
-                        (c == '.' && textFieldMontoIngreso.getText().indexOf('.') == -1))) {
+                        (c == '.' && textFieldMontoRegistrarPago.getText().indexOf('.') == -1))) {
                     e.consume();  // ignore the event
                 }
             }
@@ -648,7 +651,7 @@ public class app extends JFrame {
                 if (!((c >= '0') && (c <= '9') ||
                         (c == KeyEvent.VK_BACK_SPACE) ||
                         (c == KeyEvent.VK_DELETE) ||
-                        (c == '.' && textFieldMontoIngreso.getText().indexOf('.') == -1))) {
+                        (c == '.' && montoRDP.getText().indexOf('.') == -1))) {
                     e.consume();  // ignore the event
                 }
             }
@@ -694,7 +697,7 @@ public class app extends JFrame {
                 if (!((c >= '0') && (c <= '9') ||
                         (c == KeyEvent.VK_BACK_SPACE) ||
                         (c == KeyEvent.VK_DELETE) ||
-                        (c == '.' && textFieldMontoIngreso.getText().indexOf('.') == -1))) {
+                        (c == '.' && montoEDP.getText().indexOf('.') == -1))) {
                     e.consume();  // ignore the event
                 }
             }
@@ -709,6 +712,72 @@ public class app extends JFrame {
             }
         });
         idEEDP.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+                char c = e.getKeyChar();
+                if (!Character.isDigit(c)) {
+                    e.consume();
+                }
+            }
+        });
+        textFieldMontoGasto.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+                char c = e.getKeyChar();
+                if (!((c >= '0') && (c <= '9') ||
+                        (c == KeyEvent.VK_BACK_SPACE) ||
+                        (c == KeyEvent.VK_DELETE) ||
+                        (c == '.' && textFieldMontoGasto.getText().indexOf('.') == -1))) {
+                    e.consume();  // ignore the event
+                }
+            }
+        });
+        textFieldTasaDeduccion.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+                char c = e.getKeyChar();
+                if (!((c >= '0') && (c <= '9') ||
+                        (c == KeyEvent.VK_BACK_SPACE) ||
+                        (c == KeyEvent.VK_DELETE) ||
+                        (c == '.' && textFieldTasaDeduccion.getText().indexOf('.') == -1))) {
+                    e.consume();  // ignore the event
+                }
+            }
+        });
+        textFieldTasaImpuestoDeduccion.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+                char c = e.getKeyChar();
+                if (!((c >= '0') && (c <= '9') ||
+                        (c == KeyEvent.VK_BACK_SPACE) ||
+                        (c == KeyEvent.VK_DELETE) ||
+                        (c == '.' && textFieldTasaImpuestoDeduccion.getText().indexOf('.') == -1))) {
+                    e.consume();  // ignore the event
+                }
+            }
+        });
+        textFieldMontoEditarPago.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+                char c = e.getKeyChar();
+                if (!((c >= '0') && (c <= '9') ||
+                        (c == KeyEvent.VK_BACK_SPACE) ||
+                        (c == KeyEvent.VK_DELETE) ||
+                        (c == '.' && textFieldMontoEditarPago.getText().indexOf('.') == -1))) {
+                    e.consume();  // ignore the event
+                }
+            }
+        });
+        textFieldFrecuenciaMesesEditar.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+                char c = e.getKeyChar();
+                if (!Character.isDigit(c)) {
+                    e.consume();
+                }
+            }
+        });
+        textFieldIdEliminarPago.addKeyListener(new KeyAdapter() {
             @Override
             public void keyTyped(KeyEvent e) {
                 char c = e.getKeyChar();
@@ -953,19 +1022,19 @@ public class app extends JFrame {
         }
 
         if (sistema.crearCategoriaGasto("DesarrolloSoftware", 0)) {
-            texto += "DesarrolloSoftware: 3 Transacciones \n";
+            texto += "DesarrolloSoftware: 3 Transacciones [Presupuesto Asignado: 300] \n";
         } else {
             JOptionPane.showMessageDialog(null, "Error. La categoria DesarrolloSoftware ya ha sido agregada");
         }
 
         if (sistema.crearCategoriaGasto("GastosOficina", 0)) {
-            texto += "GastosOficina: 3 Transacciones \n";
+            texto += "GastosOficina: 3 Transacciones [Presupuesto Asignado: 300] \n";
         } else {
             JOptionPane.showMessageDialog(null, "Error. La categoria GastosOficina ya ha sido agregada");
         }
 
         if (sistema.crearCategoriaGasto("GastoMarketing", 0)) {
-            texto += "GastoMarketing: 3 Transacciones \n\n---DEUDAS---\n";
+            texto += "GastoMarketing: 3 Transacciones [Presupuesto Asignado: 300] \n\n---DEUDAS---\n";
         } else {
             JOptionPane.showMessageDialog(null, "Error. La categoria GastoMarketing ya ha sido agregada");
         }
@@ -1828,12 +1897,12 @@ public class app extends JFrame {
                             if ((fRegistro.isAfter(dia) || fRegistro.equals(dia)) && !pagado) {
                                 mensaje = tipo + " agregado exitosamente";
                                 resp = sistema.registrarDeudaOPrestamo(Double.parseDouble(montoRDP.getText()),
-                                        comboBoxMonedaRegistrar.getSelectedItem().toString(), plazoRDP.getText(), fRegistro, pagado, descripcionRDP.getText(), comboboxRegistrarPagoDeudasPr.getSelectedItem().toString());
+                                        monedaRDP.getSelectedItem().toString(), plazoRDP.getText(), fRegistro, pagado, descripcionRDP.getText(), comboboxRegistrarPagoDeudasPr.getSelectedItem().toString());
                             } else if ((fSoloRegistro.isBefore(dia) || fSoloRegistro.isEqual(dia)) && pagado) {
                                 System.out.println("pase");
                                 mensaje = tipo + " agregado exitosamente";
                                 resp = sistema.registrarDeudaOPrestamo(Double.parseDouble(montoRDP.getText()),
-                                        comboBoxMonedaRegistrar.getSelectedItem().toString(), plazoRDP.getText(), fRegistro, pagado, descripcionRDP.getText(), comboboxRegistrarPagoDeudasPr.getSelectedItem().toString());
+                                        monedaRDP.getSelectedItem().toString(), plazoRDP.getText(), fRegistro, pagado, descripcionRDP.getText(), comboboxRegistrarPagoDeudasPr.getSelectedItem().toString());
                             } else {
                                 mensaje = fSoloRegistro.isAfter(dia) && pagado? "Error. La ultima fecha de pago debe ser anterior o igual al dia actual" : "Error. La fecha de pago debe ser posterior o igual al dia actual";
                             }
@@ -2312,7 +2381,10 @@ public class app extends JFrame {
 
     public void cambiarUsuario(String user){
         if(user.equals("")){
-
+            tabbedUsuarios.setEnabled(true);
+            textFieldNombreUsuarioCrear.setEnabled(true);
+            passwordFieldCrear.setEnabled(true);
+            crearUsuarioButton.setEnabled(true);
         }else{
             tabbedUsuarios.setEnabled(false);
             textFieldNombreUsuarioCrear.setEnabled(false);
