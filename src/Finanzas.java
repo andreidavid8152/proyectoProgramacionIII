@@ -31,24 +31,26 @@ public class Finanzas {
             nuevoPago.getFechasPago().add(fechaInicio.plusMonths(i).toString());
         }
 
+        //Si el pago esta pagado completamente se hara algo
         if(pagadoCompletamente){
             nuevoPago.setSoloRegistro(true);
             Collections.fill(nuevoPago.getPagados(), true);
-            sePago = -1;
+            sePago = -1; //No se puede fecha incorrecta
         } else if (fechaInicio.equals(app.dia)) { // Verificar si la fecha de inicio es igual a la fecha actual
             if (realizarPagos(monto/Integer.parseInt(frecuencia), nuevoPago.getMoneda())) {
                 nuevoPago.getPagados().set(0, true);
                 System.out.println("El pago con ID " + nuevoPago.getId() + " para el mes 1 ha sido pagado.");
-                sePago = 1;
+                sePago = 1; //Se encontro
             } else {
                 System.out.println("No se puede pagar el pago con ID " + nuevoPago.getId() + " para el mes 1.");
             }
         } else{
-            sePago = -1;
+            sePago = -1; //No se ha encontrado
         }
 
         // Agregar el nuevo pago al HashMap de pagosRecurrentes
         this.pagosRecurrentes.put(nuevoPago.getId(), nuevoPago);
+        //Se retorna un estado
         return sePago;
     }
 
@@ -78,25 +80,6 @@ public class Finanzas {
         }
         return true; // No se encontró ningún valor verdadero, contiene solo false
     }
-
-    public HashMap<Integer, PagoRecurrente> mostrarPagosCategorizados(boolean bool) {
-        HashMap<Integer, PagoRecurrente> pagosFiltrados = new HashMap<>();
-        for (Map.Entry<Integer, PagoRecurrente> entry : pagosRecurrentes.entrySet()) {
-            // Si el pago recurrente coincide con el estado de pago especificado
-            if (bool) {
-                if (entry.getValue().isPagadoCompletamente() || entry.getValue().isSoloRegistro()) {
-                    pagosFiltrados.put(entry.getKey(), entry.getValue());
-                }
-            } else {
-                if (!entry.getValue().isPagadoCompletamente() && !entry.getValue().isSoloRegistro()) {
-                    pagosFiltrados.put(entry.getKey(), entry.getValue());
-                }
-            }
-        }
-        return pagosFiltrados;
-    }
-
-
 
     public String verificarPagosPendientes() {
         StringBuilder mensaje = new StringBuilder();
@@ -210,18 +193,6 @@ public class Finanzas {
 
         return sePago;
     }
-
-    public void eliminarPagoRecurrente(int id){
-        pagosRecurrentes.remove(id);
-    }
-
-    public void mostrarPagoRecurrente(){
-        // Imprimir cada entrada en pagosRecurrentes
-        for (Map.Entry<Integer, PagoRecurrente> entry : pagosRecurrentes.entrySet()) {
-            System.out.println(entry.getValue().toString());
-        }
-    }
-
 
     public HashMap<Integer, PagoRecurrente> getPagosRecurrentes() {
         return pagosRecurrentes;

@@ -3,6 +3,7 @@ import java.util.Date;
 import java.util.List;
 
 public abstract class Categoria {
+    //Atributos
     protected String nombre;
     protected List<Transaccion> transacciones;
     protected double impuestos;
@@ -15,8 +16,11 @@ public abstract class Categoria {
     }
 
     public boolean agregarTransaccion(Transaccion transaccion) {
+        //Se crea una transaccion
         Transaccion t = new Transaccion(nextId++, transaccion.getMonto(), transaccion.getFecha(), transaccion.getCategoria(), transaccion.getDescripcion(), transaccion.getImpuesto(), transaccion.getTasaImpuesto());
+        //Se anade una transaccion
         this.transacciones.add(t);
+        //Se calculan los impuestos
         this.impuestos += transaccion.getImpuesto();
         return true;  // La transacción se agrega exitosamente por defecto
     }

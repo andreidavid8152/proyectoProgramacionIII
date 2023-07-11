@@ -515,10 +515,12 @@ public class GestionFinanciera {
     }
 
     public void eliminarPagoRecurrente(int id){
+        //Se remueve un pago recurrente
         pagosRecurrentes.remove(id);
     }
 
     public void eliminarDeudaPrestamo(int id, String categoria){
+        //Se eliminan una deuda o un prestamo
         if(categoriasDeudas.containsKey(categoria)){
             categoriasDeudas.get(categoria).getPagosRecurrentes().remove(id);
         }else{
@@ -535,8 +537,10 @@ public class GestionFinanciera {
 
     public boolean existenTransaccionesGastos(){
 
+        //Se recorren todas las categorias gasto dentro de las categoriasGasto
         for (Map.Entry<String, CategoriaGasto> entry : categoriasGasto.entrySet()) {
 
+            //Si existen transacciones en gastos pues se retorna verdadero
             if(!entry.getValue().getTransacciones().isEmpty()){
                 return true;
             }
@@ -580,13 +584,16 @@ public class GestionFinanciera {
         HashMap<Integer, PagoRecurrente> pagosFiltrados = new HashMap<>();
         Finanzas pago;
 
+        //Comprueba que la categoria deuda contenga esa categoria, si no se sabe que la categoria sera de tipo prestamo
         if(categoriasDeudas.containsKey(categoria)){
             pago = categoriasDeudas.get(categoria);
         }else{
             pago = categoriasPrestamos.get(categoria);
         }
 
+        //Se recorren los pagos de la categoria
         for (Map.Entry<Integer, PagoRecurrente> entry : pago.getPagosRecurrentes().entrySet()) {
+            //Si el pago esta pagado se lo ingresa en pagos filtrados
             if (bool) {
                 if (entry.getValue().isPagadoCompletamente() || entry.getValue().isSoloRegistro()) {
                     pagosFiltrados.put(entry.getKey(), entry.getValue());
@@ -598,6 +605,7 @@ public class GestionFinanciera {
             }
         }
 
+        //Se recorren los pagos recurrentes en el hashmap creado (pagos filtrados)
         for (PagoRecurrente pagoRecurrente : pagosFiltrados.values()) {
             mensaje += pagoRecurrente.toString() + '\n';
         }
@@ -606,6 +614,7 @@ public class GestionFinanciera {
     }
 
     public boolean esDeuda(String cat){
+        //Comprueba que la categoria deuda tenga la categoria enviada por parametro
         if(categoriasDeudas.containsKey(cat)){
             return true;
         }
@@ -615,25 +624,31 @@ public class GestionFinanciera {
     public String mostrarCategoriasOrdenadasAZ(String tipo) {
         List<String> categoriasOrdenadas = new ArrayList<>();
 
+        //INGRESOS
         if (tipo.equals("Ingreso") || tipo.equals("Ambas")) {
             categoriasOrdenadas.addAll(this.categoriasIngreso.keySet());
         }
 
+        //GASTO
         if (tipo.equals("Gasto") || tipo.equals("Ambas")) {
             categoriasOrdenadas.addAll(this.categoriasGasto.keySet());
         }
 
+        //PRESTAMO
         if(tipo.equals("Prestamo") || tipo.equals("Ambas")){
             categoriasOrdenadas.addAll(this.categoriasPrestamos.keySet());
         }
 
+        //DEUDA
         if(tipo.equals("Deuda") || tipo.equals("Ambas")){
             categoriasOrdenadas.addAll(this.categoriasDeudas.keySet());
         }
 
+        //Se utiliza bubbl sort para odenar las categorias
         bubbleSort(categoriasOrdenadas);
 
         String text = "";
+        //Se almacena en text los nombres de las categorias para ser retornadas
         for (String categoria : categoriasOrdenadas) {
             text += categoria + "\n";
         }
@@ -641,20 +656,26 @@ public class GestionFinanciera {
     }
 
     public String mostrarCategoriasOrdenadasZA(String tipo) {
+
+        //Areglo con las categorias ordenadas
         List<String> categoriasOrdenadas = new ArrayList<>();
 
+        //INGRESOS
         if (tipo.equals("Ingreso") || tipo.equals("Ambas")) {
             categoriasOrdenadas.addAll(this.categoriasIngreso.keySet());
         }
 
+        //GASTOS
         if (tipo.equals("Gasto") || tipo.equals("Ambas")) {
             categoriasOrdenadas.addAll(this.categoriasGasto.keySet());
         }
 
+        //PRESTAMOS
         if(tipo.equals("Prestamo") || tipo.equals("Ambas")){
             categoriasOrdenadas.addAll(this.categoriasPrestamos.keySet());
         }
 
+        //DEUDA
         if(tipo.equals("Deuda") || tipo.equals("Ambas")){
             categoriasOrdenadas.addAll(this.categoriasDeudas.keySet());
         }
@@ -663,6 +684,7 @@ public class GestionFinanciera {
         Collections.reverse(categoriasOrdenadas);
 
         String text = "";
+        //Se recorren las categorias ordenadas y se guardan su nombre en una variable para se retornada
         for (String categoria : categoriasOrdenadas) {
             text += categoria + "\n";
         }
@@ -685,6 +707,7 @@ public class GestionFinanciera {
 
 
     private void insertionSort(List<Transaccion> transacciones, Comparator<Transaccion> comparator, boolean ascendente) {
+        //For que recorre las transacciones para odenarla segun un atributo especificado
         for (int i = 1; i < transacciones.size(); ++i) {
             Transaccion key = transacciones.get(i);
             int j = i - 1;

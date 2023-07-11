@@ -22,7 +22,6 @@ public class CategoriaPrestamo extends Finanzas{
             }
 
             for (int i = 0; i < Integer.parseInt(pagoRecurrente.getFrecuencia()); i++) {
-                // Cambio aquí
                 if (!pagoRecurrente.getPagados().get(i) && !app.dia.isBefore(LocalDate.parse(pagoRecurrente.getFechasPago().get(i)))) {
                     pagosPendientes.add(new Pago(pagoRecurrente, i));
                 }

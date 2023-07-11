@@ -1022,19 +1022,19 @@ public class app extends JFrame {
         }
 
         if (sistema.crearCategoriaGasto("DesarrolloSoftware", 0)) {
-            texto += "DesarrolloSoftware: 3 Transacciones [Presupuesto Asignado: 300] \n";
+            texto += "DesarrolloSoftware: 3 Transacciones [Presupuesto Asignado: 100] \n";
         } else {
             JOptionPane.showMessageDialog(null, "Error. La categoria DesarrolloSoftware ya ha sido agregada");
         }
 
         if (sistema.crearCategoriaGasto("GastosOficina", 0)) {
-            texto += "GastosOficina: 3 Transacciones [Presupuesto Asignado: 300] \n";
+            texto += "GastosOficina: 3 Transacciones [Presupuesto Asignado: 100] \n";
         } else {
             JOptionPane.showMessageDialog(null, "Error. La categoria GastosOficina ya ha sido agregada");
         }
 
         if (sistema.crearCategoriaGasto("GastoMarketing", 0)) {
-            texto += "GastoMarketing: 3 Transacciones [Presupuesto Asignado: 300] \n\n---DEUDAS---\n";
+            texto += "GastoMarketing: 3 Transacciones [Presupuesto Asignado: 100] \n\n---DEUDAS---\n";
         } else {
             JOptionPane.showMessageDialog(null, "Error. La categoria GastoMarketing ya ha sido agregada");
         }
@@ -1143,7 +1143,7 @@ public class app extends JFrame {
             if (!textFieldMontoIngreso.getText().isEmpty() && !textFieldMontoIngreso.getText().equals("0")) {
                 if(!textFieldTasaImpuesto.getText().isEmpty()){
                     if (!textAreaDescripcionIngreso.getText().isEmpty()) {
-                        Date fechaActual = new Date();
+                        Date fechaActual = convertToDate(dia);
                         double monto = Double.parseDouble(textFieldMontoIngreso.getText());
                         double impuesto = Double.parseDouble(textFieldTasaImpuesto.getText());
                         if (sistema.agregarIngreso(monto, fechaActual, textAreaDescripcionIngreso.getText(), comboBoxIngreso.getSelectedItem().toString(),
@@ -1182,7 +1182,7 @@ public class app extends JFrame {
             if (!textFieldMontoGasto.getText().isEmpty() && !textFieldMontoGasto.getText().equals("0")) {
                 if(!textFieldTasaDeduccion.getText().isEmpty()){
                     if (!JTextAreaDescripcionGasto.getText().isEmpty()) {
-                        Date fechaActual = new Date();
+                        Date fechaActual = convertToDate(dia);
                         int resp = sistema.agregarGasto(Double.parseDouble(textFieldMontoGasto.getText()), fechaActual, JTextAreaDescripcionGasto.getText(), comboBoxGasto.getSelectedItem().toString(),
                                 Double.parseDouble(textFieldTasaDeduccion.getText()));
                         if (resp == 1) {
@@ -1517,7 +1517,7 @@ public class app extends JFrame {
         if(textFieldNombreUsuarioCrear.getText().length() >= 4){
 
             if (passwordFieldCrear.getPassword().length >= 4) {
-                if(sistemaLogin.registerUser("", textFieldNombreUsuarioCrear.getText(), String.valueOf(passwordFieldCrear.getPassword()), false)){
+                if(sistemaLogin.registerUser("admin", textFieldNombreUsuarioCrear.getText(), String.valueOf(passwordFieldCrear.getPassword()), false)){
                     JOptionPane.showMessageDialog(null, "Usuario creado exitosamente");
                 }else{
                     JOptionPane.showMessageDialog(null, "Error. El usuario ya ha sido creado.");
@@ -2379,8 +2379,13 @@ public class app extends JFrame {
         }
     }
 
+    //Metodo para transformar LocalDate a Date
+    public static Date convertToDate(LocalDate localDate) {
+        return Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+    }
+
     public void cambiarUsuario(String user){
-        if(user.equals("")){
+        if(user.equals("admin")){
             tabbedUsuarios.setEnabled(true);
             textFieldNombreUsuarioCrear.setEnabled(true);
             passwordFieldCrear.setEnabled(true);
